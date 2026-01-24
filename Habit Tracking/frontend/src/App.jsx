@@ -38,15 +38,15 @@ function App() {
         { label: "DELETE", variant: "danger", onClick: row => doSomething(row) }
     ]
 
-    const [isOpen, setIsOpen] = useState(false);
+    const [isOpen, setIsOpen] = useState(true);
 
 
     return (
         <>
-            {/* <Admin></Admin> */}
+            <Admin></Admin>
 
             {/* <BottomNav></BottomNav> */}
-            {/* <Popup
+            <Popup
                 open={isOpen}
                 title="ADD NEW HABIT"
                 subtitle="This will apply to all users"
@@ -54,10 +54,10 @@ function App() {
             >
                 <TextField/>
                 <TextArea/>
-            </Popup> */}
+            </Popup>
             {/* <Dashboard /> */}
             {/* <Table actions={actions} data={data} columns={columns} /> */}
-            <Login></Login>
+            {/* <Login></Login> */}
 
             {/* <Card>
             <Button>Click Me</Button>
