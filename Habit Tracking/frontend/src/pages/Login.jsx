@@ -45,7 +45,7 @@ export default function Login() {
           </div>
 
           {/* Button */}
-            <SubmitButton label="Enter Dungeon"/>
+            <SubmitButton>Enter Dungeon</SubmitButton>
         </form>
 
         {/* Footer */}
