@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+const pool = require("../config/db");
 
 const authMiddleware = require("../middlewares/authMiddleware");
 const {
@@ -89,6 +90,59 @@ router.post("/", createQuest);
  *         $ref: "#/components/responses/ServerError"
  */
 router.get("/", getQuests);
+
+/**
+ * @swagger
+ * /api/quests/{id}:
+ *   get:
+ *     summary: Get a single quest
+ *     description: Retrieve a specific quest by ID (only quests owned by the authenticated user)
+ *     tags: [Quests]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Quest ID
+ *         example: 1
+ *     responses:
+ *       200:
+ *         description: Quest details
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Quest"
+ *       401:
+ *         $ref: "#/components/responses/UnauthorizedError"
+ *       404:
+ *         $ref: "#/components/responses/NotFoundError"
+ *       500:
+ *         $ref: "#/components/responses/ServerError"
+ */
+router.get("/:id", async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    
+    const result = await pool.query(
+      `SELECT * FROM quests
+       WHERE id = $1 AND user_id = $2`,
+      [id, req.userId]
+    );
+
+    if (result.rows.length === 0) {
+      const error = new Error("Quest not found");
+      error.statusCode = 404;
+      return next(error);
+    }
+
+    res.json(result.rows[0]);
+  } catch (err) {
+    next(err);
+  }
+});
 
 /**
  * @swagger

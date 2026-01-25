@@ -200,6 +200,85 @@ const options = {
             },
           },
         },
+        QuestLog: {
+          type: "object",
+          properties: {
+            id: {
+              type: "integer",
+              description: "Quest log ID",
+              example: 1,
+            },
+            status: {
+              type: "string",
+              enum: ["PENDING", "COMPLETED", "FAILED"],
+              description: "Quest log status",
+              example: "PENDING",
+            },
+            created_at: {
+              type: "string",
+              format: "date-time",
+              description: "Quest log creation timestamp",
+            },
+            title: {
+              type: "string",
+              description: "Quest title",
+              example: "Complete morning workout",
+            },
+            description: {
+              type: "string",
+              description: "Quest description",
+              example: "Do 30 minutes of exercise",
+              nullable: true,
+            },
+            quest_type: {
+              type: "string",
+              enum: ["daily_quest", "penalty"],
+              description: "Type of quest",
+              example: "daily_quest",
+            },
+            xp_reward: {
+              type: "integer",
+              description: "XP reward for completing the quest",
+              example: 10,
+            },
+          },
+        },
+        QuestLogFull: {
+          type: "object",
+          properties: {
+            id: {
+              type: "integer",
+              description: "Quest log ID",
+              example: 1,
+            },
+            user_id: {
+              type: "integer",
+              description: "User ID",
+              example: 1,
+            },
+            quest_id: {
+              type: "integer",
+              description: "Quest ID",
+              example: 1,
+            },
+            status: {
+              type: "string",
+              enum: ["PENDING", "COMPLETED", "FAILED"],
+              description: "Quest log status",
+              example: "COMPLETED",
+            },
+            created_at: {
+              type: "string",
+              format: "date-time",
+              description: "Quest log creation timestamp",
+            },
+            updated_at: {
+              type: "string",
+              format: "date-time",
+              description: "Quest log last update timestamp",
+            },
+          },
+        },
         Error: {
           type: "object",
           properties: {
@@ -274,6 +353,10 @@ const options = {
       {
         name: "Quests",
         description: "Quest management endpoints",
+      },
+      {
+        name: "QuestLogs",
+        description: "Quest log endpoints",
       },
     ],
   },

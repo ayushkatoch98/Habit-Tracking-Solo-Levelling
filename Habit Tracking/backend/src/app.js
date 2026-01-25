@@ -5,6 +5,7 @@ const swaggerUi = require("swagger-ui-express");
 const swaggerSpec = require("./config/swagger");
 const authRoutes = require("./routes/authRoutes");
 const questRoutes = require("./routes/questRoutes");
+const questLogsRoutes = require("./routes/questLogsRoutes");
 // Middlewares
 const errorHandler = require("./middlewares/errorHandler");
 
@@ -26,6 +27,7 @@ app.get("/", (req, res) => {
 // API Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/quests", questRoutes);
+app.use("/api/quest-logs", questLogsRoutes);
 
 // Swagger Documentation
 app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec, {

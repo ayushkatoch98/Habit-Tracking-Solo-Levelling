@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
-const { register, login } = require("../controllers/authController");
+const { register, login, getProfile } = require("../controllers/authController");
+const authMiddleware = require("../middlewares/authMiddleware");
 
 /**
  * @swagger
@@ -96,5 +97,36 @@ router.post("/register", register);
  *         $ref: "#/components/responses/ServerError"
  */
 router.post("/login", login);
+
+/**
+ * @swagger
+ * /api/auth/me:
+ *   get:
+ *     summary: Get current user profile
+ *     description: Retrieve the authenticated user's profile information
+ *     tags: [Auth]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: User profile
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/User"
+ *             example:
+ *               id: 1
+ *               username: "player1"
+ *               email: "player1@example.com"
+ *               level: 5
+ *               xp: 250
+ *       401:
+ *         $ref: "#/components/responses/UnauthorizedError"
+ *       404:
+ *         $ref: "#/components/responses/NotFoundError"
+ *       500:
+ *         $ref: "#/components/responses/ServerError"
+ */
+router.get("/me", authMiddleware, getProfile);
 
 module.exports = router;

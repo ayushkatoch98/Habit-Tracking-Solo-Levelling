@@ -112,4 +112,23 @@ const login = async (req, res, next) => {
 
 //add later edit user 
 
-module.exports = { register, login };
+const getProfile = async (req, res, next) => {
+  try {
+    const result = await pool.query(
+      "SELECT id, username, email, level, xp FROM users WHERE id = $1",
+      [req.userId]
+    );
+
+    if (result.rows.length === 0) {
+      const error = new Error("User not found");
+      error.statusCode = 404;
+      return next(error);
+    }
+
+    res.json(result.rows[0]);
+  } catch (err) {
+    next(err);
+  }
+};
+
+module.exports = { register, login, getProfile };
