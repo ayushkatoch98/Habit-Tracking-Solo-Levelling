@@ -2,25 +2,45 @@ const pool = require("../config/db");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
-const register = async (req, res) => {
+const register = async (req, res, next) => {
   try {
     const { username, email, password } = req.body;
 
+    // Validation
     if (!username || !email || !password) {
-      return res.status(400).json({ message: "All fields required" });
+      const error = new Error("All fields required");
+      error.statusCode = 400;
+      return next(error);
     }
 
+    if (username.length < 3 || username.length > 50) {
+      const error = new Error("Username must be between 3 and 50 characters");
+      error.statusCode = 400;
+      return next(error);
+    }
+
+    if (password.length < 6) {
+      const error = new Error("Password must be at least 6 characters");
+      error.statusCode = 400;
+      return next(error);
+    }
+
+    // Check if user exists
     const userExists = await pool.query(
       "SELECT id FROM users WHERE email = $1",
       [email]
     );
 
     if (userExists.rows.length > 0) {
-      return res.status(409).json({ message: "User already exists" });
+      const error = new Error("User already exists");
+      error.statusCode = 409;
+      return next(error);
     }
 
+    // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    // Create user
     const newUser = await pool.query(
       `INSERT INTO users (username, email, password_hash)
        VALUES ($1, $2, $3)
@@ -30,35 +50,45 @@ const register = async (req, res) => {
 
     res.status(201).json(newUser.rows[0]);
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Server error" });
+    next(err);
   }
 };
 
-const login = async (req, res) => {
+const login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
+    // Validation
     if (!email || !password) {
-      return res.status(400).json({ message: "All fields required" });
+      const error = new Error("All fields required");
+      error.statusCode = 400;
+      return next(error);
     }
 
+    // Find user
     const userResult = await pool.query(
       "SELECT * FROM users WHERE email = $1",
       [email]
     );
 
     if (userResult.rows.length === 0) {
-      return res.status(401).json({ message: "Invalid credentials" });
+      const error = new Error("Invalid credentials");
+      error.statusCode = 401;
+      return next(error);
     }
 
     const user = userResult.rows[0];
+
+    // Verify password
     const isMatch = await bcrypt.compare(password, user.password_hash);
 
     if (!isMatch) {
-      return res.status(401).json({ message: "Invalid credentials" });
+      const error = new Error("Invalid credentials");
+      error.statusCode = 401;
+      return next(error);
     }
 
+    // Generate token
     const token = jwt.sign(
       { userId: user.id },
       process.env.JWT_SECRET,
@@ -76,8 +106,7 @@ const login = async (req, res) => {
       }
     });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Server error" });
+    next(err);
   }
 };
 

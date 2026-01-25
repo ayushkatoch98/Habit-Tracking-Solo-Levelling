@@ -1,16 +1,33 @@
 const pool = require("../config/db");
 
 // CREATE QUEST
-const createQuest = async (req, res) => {
+const createQuest = async (req, res, next) => {
   try {
     const { title, description, quest_type, xp_reward } = req.body;
 
+    // Validation
     if (!title || !quest_type) {
-      return res.status(400).json({ message: "Title and quest_type required" });
+      const error = new Error("Title and quest_type required");
+      error.statusCode = 400;
+      return next(error);
+    }
+
+    if (title.length < 1 || title.length > 255) {
+      const error = new Error("Title must be between 1 and 255 characters");
+      error.statusCode = 400;
+      return next(error);
     }
 
     if (!["daily_quest", "penalty"].includes(quest_type)) {
-      return res.status(400).json({ message: "Invalid quest_type" });
+      const error = new Error("Invalid quest_type. Must be 'daily_quest' or 'penalty'");
+      error.statusCode = 400;
+      return next(error);
+    }
+
+    if (xp_reward && (xp_reward < 1 || !Number.isInteger(xp_reward))) {
+      const error = new Error("XP reward must be a positive integer");
+      error.statusCode = 400;
+      return next(error);
     }
 
     const result = await pool.query(
@@ -28,13 +45,12 @@ const createQuest = async (req, res) => {
 
     res.status(201).json(result.rows[0]);
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Server error" });
+    next(err);
   }
 };
 
 // GET ALL QUEST
-const getQuests = async (req, res) => {
+const getQuests = async (req, res, next) => {
   try {
     const result = await pool.query(
       `SELECT * FROM quests
@@ -45,48 +61,88 @@ const getQuests = async (req, res) => {
 
     res.json(result.rows);
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Server error" });
+    next(err);
   }
 };
 
 //UPDATE QUEST
-const updateQuest = async (req, res) => {
+const updateQuest = async (req, res, next) => {
   try {
     const { id } = req.params;
     const { title, description, quest_type, xp_reward } = req.body;
 
+    // Validation
+    if (title && (title.length < 1 || title.length > 255)) {
+      const error = new Error("Title must be between 1 and 255 characters");
+      error.statusCode = 400;
+      return next(error);
+    }
+
+    if (quest_type && !["daily_quest", "penalty"].includes(quest_type)) {
+      const error = new Error("Invalid quest_type. Must be 'daily_quest' or 'penalty'");
+      error.statusCode = 400;
+      return next(error);
+    }
+
+    if (xp_reward && (xp_reward < 1 || !Number.isInteger(xp_reward))) {
+      const error = new Error("XP reward must be a positive integer");
+      error.statusCode = 400;
+      return next(error);
+    }
+
+    // Build update query dynamically
+    const updates = [];
+    const values = [];
+    let paramCount = 1;
+
+    if (title !== undefined) {
+      updates.push(`title = $${paramCount++}`);
+      values.push(title);
+    }
+    if (description !== undefined) {
+      updates.push(`description = $${paramCount++}`);
+      values.push(description);
+    }
+    if (quest_type !== undefined) {
+      updates.push(`quest_type = $${paramCount++}`);
+      values.push(quest_type);
+    }
+    if (xp_reward !== undefined) {
+      updates.push(`xp_reward = $${paramCount++}`);
+      values.push(xp_reward);
+    }
+
+    if (updates.length === 0) {
+      const error = new Error("No fields to update");
+      error.statusCode = 400;
+      return next(error);
+    }
+
+    updates.push(`updated_at = NOW()`);
+    values.push(id, req.userId);
+
     const result = await pool.query(
       `UPDATE quests
-       SET title = $1,
-           description = $2,
-           quest_type = $3,
-           xp_reward = $4
-       WHERE id = $5 AND user_id = $6
+       SET ${updates.join(", ")}
+       WHERE id = $${paramCount++} AND user_id = $${paramCount}
        RETURNING *`,
-      [
-        title,
-        description,
-        quest_type,
-        xp_reward,
-        id,
-        req.userId
-      ]
+      values
     );
 
     if (result.rows.length === 0) {
-      return res.status(404).json({ message: "Quest not found" });
+      const error = new Error("Quest not found");
+      error.statusCode = 404;
+      return next(error);
     }
 
     res.json(result.rows[0]);
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Server error" });
+    next(err);
   }
 };
 
 //DELETE QUEST
-const deleteQuest = async (req, res) => {
+const deleteQuest = async (req, res, next) => {
   try {
     const { id } = req.params;
 
@@ -98,13 +154,14 @@ const deleteQuest = async (req, res) => {
     );
 
     if (result.rows.length === 0) {
-      return res.status(404).json({ message: "Quest not found" });
+      const error = new Error("Quest not found");
+      error.statusCode = 404;
+      return next(error);
     }
 
     res.json({ message: "Quest deleted" });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Server error" });
+    next(err);
   }
 };
 

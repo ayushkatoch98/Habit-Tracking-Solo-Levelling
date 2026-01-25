@@ -5,28 +5,40 @@ const swaggerUi = require("swagger-ui-express");
 const swaggerSpec = require("./config/swagger");
 const authRoutes = require("./routes/authRoutes");
 const questRoutes = require("./routes/questRoutes");
-//for test db
-const pool = require("./config/db");
+// Middlewares
+const errorHandler = require("./middlewares/errorHandler");
 
 const app = express();
 
+// Middleware
 app.use(cors());
 app.use(express.json());
+
+//
+app.get("/", (req, res) => {
+  res.json({ 
+    status: "Backend running",
+    timestamp: new Date().toISOString(),
+    version: "1.0.0"
+  });
+});
+
+// API Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/quests", questRoutes);
 
-// Swagger
-app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+// Swagger Documentation
+app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
+  customCss: ".swagger-ui .topbar { display: none }",
+  customSiteTitle: "Habit Tracking API Documentation",
+}));
 
-app.get("/", (req, res) => {
-  res.json({ status: "Backend running" });
+// 404 handler
+app.use((req, res) => {
+  res.status(404).json({ message: "Route not found" });
 });
 
-//for test db conn
-// app.get("/db-test", async (req, res) => {
-//   const result = await pool.query("SELECT NOW()");
-//   console.log(result);
-//   res.json(result.rows[0]);
-// });
+// Error handler (must be last)
+app.use(errorHandler);
 
 module.exports = app;
