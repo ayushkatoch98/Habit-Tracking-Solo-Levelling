@@ -1,5 +1,5 @@
 import './input.css'
-export default function Input({ placeholder, type = "text", value, onChange, className = '', style = {} }) {
+export default function Input({ placeholder, type = "text", value, onChange, disabled = false, className = '', style = {} }) {
   return (
     <input
       className={`system-input ${className}`}
@@ -8,6 +8,7 @@ export default function Input({ placeholder, type = "text", value, onChange, cla
       value={value}
       onChange={onChange}
       style={style}
+      disabled={disabled}
     />
   );
 }

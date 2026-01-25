@@ -18,7 +18,7 @@ export default function XPBar({
     return (
         <div className={`xp-bar-container ${className}`} style={style}>
             <div className="level-badge">
-                <span className="level-label">Welcome Player, {user?.fullname}</span>
+                <span className="level-label">Welcome Player, {user?.username?.toUpperCase()}</span>
             </div>
             <div className="level-badge">
                 <span className="level-label">LEVEL</span>

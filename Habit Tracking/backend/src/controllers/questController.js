@@ -118,7 +118,7 @@ const updateQuest = async (req, res, next) => {
       return next(error);
     }
 
-    updates.push(`updated_at = NOW()`);
+    // updates.push(`updated_at = NOW()`);
     values.push(id, req.userId);
 
     const result = await pool.query(

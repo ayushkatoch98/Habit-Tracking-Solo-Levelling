@@ -25,6 +25,7 @@ export default function Login() {
     }
     instance.post("/auth/login", payload).then(res => {
         const {token, user} = res.data;
+        instance.defaults.headers.common["authorization"] = `Bearer ${token}`
         login(user, token);
     }).catch(err => {
         console.log("Error", err)

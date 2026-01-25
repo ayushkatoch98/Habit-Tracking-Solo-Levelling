@@ -27,18 +27,21 @@ export default function AdminTableCard({
                     <thead>
                         <tr>
                             {columns.map((col) => (
-                                <th key={col}>{col}</th>
+                                <th key={col}>{col.toUpperCase().replaceAll("_", " ")}</th>
                             ))}
-                            <th>Action</th>
+                            <th>ACTION</th>
                         </tr>
                     </thead>
 
                     <tbody>
                         {rows.map((row, idx) => (
                             <tr key={idx}>
-                                {columns.map((col) => (
-                                    <td key={col}>{row[col]}</td>
-                                ))}
+                                {columns.map((col) => {
+                                    if (col == "id") {
+                                        return <td key={col}>{row[col].substring(0, 5)}</td>
+                                    }
+                                    else return <td key={col}>{row[col]}</td>
+                                })}
 
                                 <td className="admin-actions">
                                     {extraAction && (
