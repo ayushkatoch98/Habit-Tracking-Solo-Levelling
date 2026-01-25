@@ -7,9 +7,11 @@ import Header from "../../components/Header/Header";
 
 import "./login.css";
 import { useAuth } from "../../context/AuthProvider";
+import instance from "../../../axisInstance";
+
 
 export default function Login() {
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
   const {login} = useAuth();
@@ -17,7 +19,19 @@ export default function Login() {
   const handleLogin = (e) => {
     e.preventDefault();
 
-    login("jwttoken", {"name": "AK"});
+    const payload = {
+        "email": email,
+        "password": password
+    }
+    instance.post("/auth/login", payload).then(res => {
+        const {token, user} = res.data;
+        login(user, token);
+    }).catch(err => {
+        console.log("Error", err)
+        alert(err.response.data.message)
+    })
+    
+    // login("jwttoken", {"name": "AK"});
 
 };
 
@@ -31,9 +45,9 @@ export default function Login() {
 
         <form className="login-form" onSubmit={handleLogin}>
           <Input
-            placeholder="Username"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
+            placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
           />
 
           <Input

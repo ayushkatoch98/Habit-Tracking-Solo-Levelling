@@ -1,3 +1,4 @@
+import { useAuth } from "../../context/AuthProvider";
 import "./xpBar.css";
 
 export default function XPBar({
@@ -12,9 +13,13 @@ export default function XPBar({
         100
     );
 
+    const { user } = useAuth();
+
     return (
         <div className={`xp-bar-container ${className}`} style={style}>
-
+            <div className="level-badge">
+                <span className="level-label">Welcome Player, {user?.fullname}</span>
+            </div>
             <div className="level-badge">
                 <span className="level-label">LEVEL</span>
                 <div className="level-circle">
