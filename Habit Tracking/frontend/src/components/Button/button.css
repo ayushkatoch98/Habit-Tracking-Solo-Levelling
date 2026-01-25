@@ -1,0 +1,40 @@
+.system-btn {
+    width: 100%;
+    padding: 12px;
+    border-radius: 10px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    color: white;
+    transition: all 0.2s ease;
+}
+
+.system-btn.primary {
+    background: linear-gradient(135deg, #a678ff, #6d3bff);
+}
+
+.system-btn.danger {
+    background: linear-gradient(135deg, #ff5c7a, #ff2f5e);
+}
+
+.system-btn:hover {
+    box-shadow: 0 0 15px rgba(150, 80, 255, 0.8);
+    transform: translateY(-1px);
+}
+
+/* sizes */
+.system-btn.sm {
+    padding: 6px 12px;
+    font-size: 12px;
+    width: auto;
+}
+
+/* ghost / utility button */
+.system-btn.ghost {
+    background: rgba(0, 0, 0, 0.35);
+    border: 1px solid rgba(170, 120, 255, 0.35);
+}
+
+.system-btn.ghost:hover {
+    box-shadow: 0 0 8px rgba(150, 80, 255, 0.6);
+}

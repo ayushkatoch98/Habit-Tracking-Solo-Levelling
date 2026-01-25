@@ -1,0 +1,97 @@
+.admin-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+  
+}
+
+.admin-card-header h3 {
+  letter-spacing: 1.5px;
+  font-size: 15px;
+}
+
+/* TABLE */
+
+.admin-table-wrapper {
+  width: 100%;
+  overflow-x: auto;      /* 🔥 THIS */
+  overflow-y: hidden;
+}
+
+/* smooth scroll on mobile */
+.admin-table-wrapper::-webkit-scrollbar {
+  height: 6px;
+}
+
+.admin-table-wrapper::-webkit-scrollbar-thumb {
+  background: rgba(170,120,255,0.4);
+  border-radius: 4px;
+}
+
+.admin-table-wrapper::-webkit-scrollbar-track {
+  background: rgba(0,0,0,0.3);
+}
+
+.admin-table {
+  border-collapse: collapse;
+  font-size: 13px;
+  table-layout: fixed;
+
+  min-width: 100%; /* 🔥 THIS CREATES OVERFLOW */
+}
+
+.admin-table th {
+  text-align: left;
+  padding: 10px;
+  color: #b9a7d9;
+  border-bottom: 1px solid rgba(170,120,255,0.3);
+}
+
+.admin-table td {
+  padding: 10px;
+  border-bottom: 1px solid rgba(170,120,255,0.15);
+}
+
+/* ACTIONS */
+.admin-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.admin-actions button {
+  background: rgba(0,0,0,0.45);
+  border: 1px solid rgba(170,120,255,0.35);
+  color: #e5d9ff;
+  padding: 5px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.admin-actions button:hover {
+  box-shadow: 0 0 8px rgba(150,80,255,0.6);
+}
+
+.admin-actions .danger {
+  border-color: rgba(255,92,122,0.6);
+  color: #ff5c7a;
+}
+
+
+.admin-table th,
+.admin-table td {
+  width: auto;
+}
+
+.admin-table th:last-child,
+.admin-table td:last-child {
+  width: 180px; /* action column fixed */
+}
+
+.admin-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}

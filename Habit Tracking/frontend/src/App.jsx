@@ -1,73 +1,64 @@
 // import { useState } from 'react'
 import './App.css'
-import Login from './pages/Login'
-import { Button } from './components/Button'
-import { Checkbox } from './components/Checkbox'
-import { Heading } from './components/Heading'
-import { Card } from './components/Card'
-import SubmitButton from './components/SubmitButton'
-import Dashboard from './pages/Dashboard'
-import { Table } from './components/Table'
-import { Popup } from './components/Popup'
-import { useState } from 'react'
-import { TextField } from './components/TextField'
-import { TextArea } from './components/TextArea'
-import Admin from './pages/Admin'
-// import { BottomNav } from './components/BottomNav'
-
-
+import AdminTableCard from './components/AdminTableCard/AdminTableCard';
+import BottomNav from './components/BottomNav/BottomNav';
+import PlanChecklist from './components/PlanChecklist/PlanChecklist';
+import Admin from './pages/Admin/Admin';
+// import QuestTableCard from './components/QuestList/QuestList'
+import Dashboard from './pages/Dashboard/Dashboard';
+import Login from './pages/Login/Login'
+import { useState } from 'react';
 function App() {
 
-    //   const [checkboxState, setCheckboxState] = useState(true);
+    const rows = [
+        {
+            name: "10K Steps",
+            status: "Pending",
+            xp: 50,
+            onComplete: (row) => console.log("DONE", row),
+            onDelete: (row) => console.log("FAILED", row),
+        },
+        {
+            name: "Meditation",
+            status: "Done",
+            xp: 30,
+            onComplete: () => { },
+            onDelete: () => { },
+        },
+    ];
 
-    const doSomething = (row) => {
-        console.log("clicked", row)
+
+    const changeActiveTab = (newTab) => {
+        setActiveTab(newTab);
     }
+    const [activeTab, setActiveTab] = useState("dashboard");
 
-    const columns = [
-        { key: "title", label: "HABIT" },
-        { key: "description", label: "DESCRIPTION" }
+    const bottomNavItems = [{
+        key: "dashboard",
+        label: "Dashboard"
+    },
+    {
+        key: "compare",
+        label: "Compare"
+    },
+    {
+        key: "admin",
+        label: "Admin"
+    }
     ]
-
-    const data = [
-        { title: "10K Steps", description: "Walk daily" },
-        { title: "Meditation", description: "5–10 mins" }
-    ]
-    const actions = [
-        { label: "EDIT", onClick: row => doSomething(row) },
-        { label: "DELETE", variant: "danger", onClick: row => doSomething(row) }
-    ]
-
-    const [isOpen, setIsOpen] = useState(true);
-
 
     return (
         <>
-            <Admin></Admin>
 
-            {/* <BottomNav></BottomNav> */}
-            <Popup
-                open={isOpen}
-                title="ADD NEW HABIT"
-                subtitle="This will apply to all users"
-                actions={actions}
-            >
-                <TextField/>
-                <TextArea/>
-            </Popup>
-            {/* <Dashboard /> */}
-            {/* <Table actions={actions} data={data} columns={columns} /> */}
-            {/* <Login></Login> */}
+            {/* <Login/> */}
+            <Dashboard />
+            {/* <Admin/> */}
+            <BottomNav
+                items={bottomNavItems}
+                active={activeTab}
+                onClick={setActiveTab}
+            />
 
-            {/* <Card>
-            <Button>Click Me</Button>
-            <br/>
-            <Checkbox label="Can you check this" checked={checkboxState} onChange={() => setCheckboxState(!checkboxState)}></Checkbox>
-            <br/>
-            <Heading title="This is my title" subtitle="This is my subtitle"></Heading>
-            <br/>
-            <SubmitButton>Enter the dungeon</SubmitButton>
-        </Card> */}
         </>
     )
 }
