@@ -1,5 +1,6 @@
 import Card from "../Card/Card";
 import Button from "../Button/Button";
+import { Plus, Pencil, Trash2 } from "lucide-react";
 import "./adminTableCard.css";
 
 export default function AdminTableCard({
@@ -17,7 +18,8 @@ export default function AdminTableCard({
         <Card className={className} style={style}>
             <div className="admin-card-header">
                 <h3>{title}</h3> <Button variant="ghost" size="sm" onClick={onAdd}>
-                    + ADD
+                    <Plus size={14} />
+                    <span>Add</span>
                 </Button>
             </div>
             <div className="admin-table-wrapper">
@@ -40,18 +42,29 @@ export default function AdminTableCard({
 
                                 <td className="admin-actions">
                                     {extraAction && (
-                                        <button onClick={() => extraAction.onClick(row)}>
-                                            {extraAction.label}
+                                        <button
+                                            className="icon-btn"
+                                            title={extraAction.label}
+                                            onClick={() => extraAction.onClick(row)}
+                                        >
+                                            <Plus size={14} />
                                         </button>
                                     )}
 
-                                    <button onClick={() => onEdit(row)}>Edit</button>
+                                    <button
+                                        className="icon-btn"
+                                        title="Edit"
+                                        onClick={() => onEdit(row)}
+                                    >
+                                        <Pencil size={14} />
+                                    </button>
 
                                     <button
-                                        className="danger"
+                                        className="icon-btn danger"
+                                        title="Delete"
                                         onClick={() => onDelete(row)}
                                     >
-                                        Delete
+                                        <Trash2 size={14} />
                                     </button>
                                 </td>
                             </tr>

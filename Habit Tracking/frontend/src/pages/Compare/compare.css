@@ -1,0 +1,32 @@
+.compare-page {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+/* TITLE */
+.compare-title {
+  text-align: center;
+  letter-spacing: 3px;
+  font-size: 16px;
+  margin-bottom: 6px;
+  color: #e5d9ff;
+}
+
+/* CONTROL CARD */
+.compare-controls {
+  display: flex;
+  justify-content: center;
+}
+
+/* TABLE CARD */
+.compare-table-card {
+  overflow-x: auto;
+}
+
+/* BARS CARD */
+.compare-bars-card {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}

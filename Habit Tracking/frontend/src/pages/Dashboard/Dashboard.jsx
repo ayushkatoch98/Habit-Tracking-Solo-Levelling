@@ -2,6 +2,7 @@ import PlanChecklist from "../../components/PlanChecklist/PlanChecklist";
 import { useState, useMemo } from "react";
 import QuestList from "../../components/QuestList/QuestList";
 import XPBar from "../../components/XPBar/XPBar";
+import SystemTimer from "../../components/SystemTimer/SystemTimer";
 export default function Dashboard() {
 
     const [quests, setQuests] = useState([
@@ -124,11 +125,9 @@ export default function Dashboard() {
         setQuests(prev => {
 
             return prev.map(item => {
-
                 if (item.id == quest.id) {
-                    item.completed = !item.completed;
+                    return { ...item, completed: !item.completed }
                 }
-
                 return item;
 
             });
@@ -137,13 +136,22 @@ export default function Dashboard() {
 
     }
 
+    const deadline = new Date();
+    deadline.setSeconds(deadline.getSeconds() + 301);
 
 
     return (
         <>
 
             <XPBar level={20} currentXP={600} requiredXP={1000} />
+            <br />
 
+            <SystemTimer
+                deadline={deadline.getTime()}
+                onExpire={() => {
+                    console.log("LOCKED → APPLY PUNISHMENTS");
+                }}
+            />
             <br />
 
             <QuestList
@@ -167,6 +175,8 @@ export default function Dashboard() {
                 onSelect={onQuestClick}
             />
 
+            <br />
+            <br />
         </>
     )
 

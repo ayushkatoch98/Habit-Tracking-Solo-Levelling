@@ -1,0 +1,67 @@
+.system-compare-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 6px;
+  font-size: 13px;
+}
+
+/* HEADER */
+.system-compare-table thead th {
+  padding: 10px 14px;
+  letter-spacing: 2px;
+  font-size: 11px;
+  color: #b9a7d9;
+  opacity: 0.7;
+}
+
+.metric-col {
+  text-align: left;
+}
+
+.user-col {
+  text-align: center;
+}
+
+/* ROW */
+.compare-row {
+  background: rgba(20,10,40,0.7);
+  border: 1px solid rgba(170,120,255,0.25);
+  box-shadow: 0 0 14px rgba(150,80,255,0.15);
+}
+
+/* METRIC CELL */
+.metric-cell {
+  padding: 12px 14px;
+  letter-spacing: 1px;
+  opacity: 0.65;
+}
+
+/* VALUE CELL */
+.value-cell {
+  padding: 12px;
+  text-align: center;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+/* BEST */
+.value-cell.best {
+  color: #e5d9ff;
+  box-shadow: inset 0 0 10px rgba(150,80,255,0.6);
+}
+
+/* WORSE */
+.value-cell.worse {
+  opacity: 0.4;
+}
+
+/* DANGER ROW */
+.compare-row.danger {
+  border-color: rgba(255,92,122,0.5);
+  box-shadow: 0 0 14px rgba(255,92,122,0.3);
+}
+
+.compare-row.danger .value-cell.best {
+  color: #ff5c7a;
+  box-shadow: inset 0 0 10px rgba(255,92,122,0.6);
+}

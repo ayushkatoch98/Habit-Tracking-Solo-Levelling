@@ -1,17 +1,40 @@
+
 .login-page {
   display: flex;
   align-items: center;
   justify-content: center;
   min-height: 100vh;
+
+  padding: 20px;
+}
+
+.login-page .system-card {
+  max-width: 360px;
+  width: 100%;
+  padding: 24px 22px;
+
+  box-shadow:
+    0 0 30px rgba(150,80,255,0.35),
+    inset 0 0 20px rgba(150,80,255,0.15);
+}
+
+.login-page .header-title {
+  font-size: 14px;
+  letter-spacing: 3px;
+}
+
+.login-page .header-subtitle {
+  margin-top: 4px;
+  font-size: 12px;
+  opacity: 0.65;
 }
 
 .login-form {
-  margin-top: 20px;
+  margin-top: 18px;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 12px;
 }
-
 .login-warning {
   font-size: 11px;
   opacity: 0.7;
@@ -24,4 +47,20 @@
   font-size: 11px;
   opacity: 0.6;
   text-align: center;
+}
+
+
+.login-page button {
+  margin-top: 6px;
+  letter-spacing: 1.5px;
+}
+
+.login-page .system-card {
+  animation: systemPulse 3s ease-in-out infinite;
+}
+
+@keyframes systemPulse {
+  0% { box-shadow: 0 0 28px rgba(150,80,255,0.25); }
+  50% { box-shadow: 0 0 48px rgba(150,80,255,0.45); }
+  100% { box-shadow: 0 0 28px rgba(150,80,255,0.25);}
 }

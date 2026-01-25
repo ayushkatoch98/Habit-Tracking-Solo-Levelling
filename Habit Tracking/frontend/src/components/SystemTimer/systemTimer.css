@@ -1,0 +1,137 @@
+.system-timer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+
+    padding: 12px 16px;
+    border-radius: 12px;
+
+    background: rgba(20, 10, 40, 0.85);
+    border: 1px solid rgba(170, 120, 255, 0.3);
+
+    box-shadow: 0 0 20px rgba(150, 80, 255, 0.25);
+    transition: all 0.2s ease;
+}
+
+
+/* LOCKED TEXT */
+.timer-locked {
+    font-size: 11px;
+    letter-spacing: 1.5px;
+    color: #ff5c7a;
+}
+
+/* DANGER MODE */
+.system-timer.danger {
+    border-color: rgba(255, 92, 122, 0.6);
+    box-shadow: 0 0 16px rgba(255, 92, 122, 0.5);
+}
+
+.system-timer.danger .timer-value {
+    color: #ff5c7a;
+}
+
+.system-timer.dramatic {
+    padding: 18px 20px;
+    gap: 10px;
+    text-align: center;
+}
+
+/* LABEL */
+.timer-label {
+    font-size: 11px;
+    letter-spacing: 2px;
+    opacity: 0.7;
+}
+
+/* TIME */
+.timer-value {
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    color: #e5d9ff;
+}
+
+/* CORE */
+.timer-core {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* RING */
+.timer-ring {
+    display: none;
+    position: absolute;
+    width: 96px;
+    height: 96px;
+    border-radius: 50%;
+    border: 1px solid rgba(170, 120, 255, 0.35);
+    box-shadow:
+        0 0 20px rgba(150, 80, 255, 0.4),
+        inset 0 0 12px rgba(150, 80, 255, 0.3);
+}
+
+/* TIME */
+.timer-value {
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    color: #e5d9ff;
+    text-shadow:
+        0 0 8px rgba(150, 80, 255, 0.9),
+        0 0 16px rgba(150, 80, 255, 0.6);
+    z-index: 1;
+}
+
+/* LOCKED TEXT */
+.timer-locked {
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: #ff5c7a;
+}
+
+/* ===== DANGER MODE ===== */
+.timer-label.danger {
+    color: #ff5c7a;
+}
+.system-timer.danger .timer-ring {
+    border-color: rgba(255, 92, 122, 0.6);
+    box-shadow:
+        0 0 28px rgba(255, 92, 122, 0.6),
+        inset 0 0 14px rgba(255, 92, 122, 0.4);
+}
+
+.system-timer.danger .timer-value {
+    color: #ff5c7a;
+    text-shadow:
+        0 0 10px rgba(255, 92, 122, 0.9),
+        0 0 20px rgba(255, 92, 122, 0.7);
+}
+
+/* SUBTLE PULSE (last 60s) */
+.system-timer.danger .timer-ring {
+    animation: pulse 1s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0% {
+        box-shadow:
+            0 0 18px rgba(255, 92, 122, 0.4),
+            inset 0 0 10px rgba(255, 92, 122, 0.3);
+    }
+
+    50% {
+        box-shadow:
+            0 0 30px rgba(255, 92, 122, 0.8),
+            inset 0 0 14px rgba(255, 92, 122, 0.5);
+    }
+
+    100% {
+        box-shadow:
+            0 0 18px rgba(255, 92, 122, 0.4),
+            inset 0 0 10px rgba(255, 92, 122, 0.3);
+    }
+}

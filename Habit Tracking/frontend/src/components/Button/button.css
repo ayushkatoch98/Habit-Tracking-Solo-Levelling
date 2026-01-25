@@ -6,11 +6,16 @@
     border: none;
     cursor: pointer;
     color: white;
-    transition: all 0.2s ease;
-}
+    transition: all 0.2s ease;  
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
 
+}
 .system-btn.primary {
     background: linear-gradient(135deg, #a678ff, #6d3bff);
+    display: inline;
+    align-items: center;
 }
 
 .system-btn.danger {
@@ -38,3 +43,4 @@
 .system-btn.ghost:hover {
     box-shadow: 0 0 8px rgba(150, 80, 255, 0.6);
 }
+

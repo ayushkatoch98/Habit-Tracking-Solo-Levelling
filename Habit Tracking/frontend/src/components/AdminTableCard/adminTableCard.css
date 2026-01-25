@@ -52,7 +52,10 @@
   padding: 10px;
   border-bottom: 1px solid rgba(170,120,255,0.15);
 }
-
+.admin-table th,
+.admin-table td {
+  width: 600px;
+}
 /* ACTIONS */
 .admin-actions {
   display: flex;
@@ -85,13 +88,42 @@
   width: auto;
 }
 
-.admin-table th:last-child,
-.admin-table td:last-child {
-  width: 180px; /* action column fixed */
-}
 
 .admin-actions {
   display: flex;
   align-items: center;
   gap: 8px;
+}
+
+/* ICON BUTTON */
+.icon-btn {
+  width: 30px;
+  height: 30px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: rgba(0,0,0,0.45);
+  border: 1px solid rgba(170,120,255,0.35);
+  border-radius: 8px;
+
+  color: #e5d9ff;
+  cursor: pointer;
+
+  transition: all 0.2s ease;
+}
+
+.icon-btn:hover {
+  box-shadow: 0 0 8px rgba(150,80,255,0.6);
+}
+
+/* DANGER */
+.icon-btn.danger {
+  border-color: rgba(255,92,122,0.6);
+  color: #ff5c7a;
+}
+
+.icon-btn.danger:hover {
+  box-shadow: 0 0 10px rgba(255,92,122,0.6);
 }

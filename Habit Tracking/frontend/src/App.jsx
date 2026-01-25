@@ -6,6 +6,7 @@ import PlanChecklist from './components/PlanChecklist/PlanChecklist';
 import Admin from './pages/Admin/Admin';
 // import QuestTableCard from './components/QuestList/QuestList'
 import Dashboard from './pages/Dashboard/Dashboard';
+import Compare from './pages/Compare/Compare';
 import Login from './pages/Login/Login'
 import { useState } from 'react';
 function App() {
@@ -35,23 +36,32 @@ function App() {
 
     const bottomNavItems = [{
         key: "dashboard",
-        label: "Dashboard"
+        label: "Dashboard",
     },
     {
         key: "compare",
-        label: "Compare"
+        label: "Compare",
+    },
+    {
+        key: "login",
+        label: "Login",
     },
     {
         key: "admin",
-        label: "Admin"
+        label: "Admin",
     }
     ]
 
     return (
         <>
 
+            { activeTab == "dashboard" && <Dashboard/> }
+            { activeTab == "compare" && <Compare/>}
+            { activeTab == "login" && <Login/> }
+            { activeTab == "admin" && <Admin/> }
+
             {/* <Login/> */}
-            <Dashboard />
+            {/* <Dashboard /> */}
             {/* <Admin/> */}
             <BottomNav
                 items={bottomNavItems}
