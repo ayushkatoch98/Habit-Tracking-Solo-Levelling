@@ -16,7 +16,9 @@
 /* CONTROL CARD */
 .compare-controls {
   display: flex;
+  flex-direction: column;
   justify-content: center;
+  align-items: center;
 }
 
 /* TABLE CARD */
@@ -29,4 +31,39 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
+}
+
+/* QUICK RANGE BUTTONS */
+.quick-ranges {
+  margin-top: 14px;
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.range-btn {
+  padding: 6px 12px;
+  font-size: 11px;
+  letter-spacing: 1.5px;
+
+  background: rgba(0,0,0,0.4);
+  border: 1px solid rgba(170,120,255,0.35);
+  border-radius: 8px;
+
+  color: #e5d9ff;
+  cursor: pointer;
+
+  transition: all 0.2s ease;
+}
+
+.range-btn:hover {
+  box-shadow: 0 0 10px rgba(150,80,255,0.6);
+}
+
+/* OPTIONAL: ACTIVE STATE (next step) */
+.range-btn.active {
+  background: rgba(120,60,255,0.25);
+  border-color: rgba(170,120,255,0.7);
+  box-shadow: 0 0 12px rgba(150,80,255,0.8);
 }

@@ -1,19 +1,80 @@
 import AdminTableCard from "../../components/AdminTableCard/AdminTableCard";
+import { useEffect, useState } from "react";
 import "./admin.css";
+import AdminPopup from "../../components/AdminPopup/AdminPopup";
+import instance from "../../../axisInstance";
 
 export default function Admin() {
-    const users = [
-        { username: "hunter1", level: 12, status: "Active" },
-        { username: "hunter2", level: 7, status: "Banned" },
-    ];
-    const habits = [
-        { name: "10K Steps", xp: 50, frequency: "Daily" },
-        { name: "Meditation", xp: 30, frequency: "Daily" },
-    ];
-    const punishments = [
-        { name: "Cold Shower", severity: "Medium", duration: "2 min" },
-        { name: "No Sugar", severity: "Low", duration: "24 hrs" },
-    ];
+
+    const [users, setUsers] = useState([]);
+
+    // const [users, setUsers] = useState([]);
+    const [quests, setQuests] = useState([]);
+
+
+    useEffect(() => {
+
+        instance.get("/quests").then(res => {
+            console.log(res);
+            setQuests([...res.data])
+        }).catch(err => {
+            console.log("Error", err)
+            alert(err.response.data.message)
+        })
+
+        instance.get("/auth/").then(res => {
+            console.log("users", res);
+            setUsers([...res.data])
+        }).catch(err => {
+            console.log("Error", err)
+            alert(err.response.data.message)
+        })
+    }, [])
+
+
+
+    const [popup, setPopup] = useState({
+        open: false,
+        mode: null,
+        entity: null,
+        data: null,
+    });
+
+
+    const openCreate = (entity) =>
+        setPopup({ open: true, mode: "create", entity, data: null });
+
+    const closePopup = () =>
+        setPopup({ open: false, mode: null, entity: null, data: null });
+
+    const handleSubmit = (formData, type, isEdit) => {
+
+        if (type == "QUEST") {
+            if (!isEdit) {
+                // Creating
+                instance.post("/quests/", formData).then(res => {
+                    console.log("success", res.data)
+                    setQuests([...quests, { ...res.data }]);
+
+                }).catch(err => {
+                    console.log("Error", err)
+                    alert(err.response.data.message)
+                })
+            }
+            else {
+                // Updating
+                instance.put(`/quests/${formData.id}`, formData).then(res => {
+                    console.log("success", res.data)
+                    setQuests([...quests, { ...res.data }]);
+                }).catch(err => {
+                    console.log("Error", err)
+                    alert(err.response.data.message)
+                })
+            }
+        }
+
+        closePopup();
+    };
     return (
         <div className="admin-page">
             <h2 className="admin-title">SYSTEM ADMIN PANEL</h2>
@@ -21,36 +82,32 @@ export default function Admin() {
             {/* USERS */}
             <AdminTableCard
                 title="USERS"
-                columns={["username", "level", "status"]}
+                columns={users.length > 0 ? Object.keys(users[0]) : []}
                 rows={users}
-                onAdd={() => console.log("ADD USER")}
-                onEdit={(row) => console.log("EDIT USER", row)}
-                onDelete={(row) => console.log("DELETE USER", row)}
-                extraAction={{
-                    label: "Reset XP",
-                    onClick: (row) => console.log("RESET XP", row),
-                }}
+                onAdd={() => {}}
+                tableType="users"
             />
 
-            {/* HABITS */}
+            {/* QUESTS */}
             <AdminTableCard
-                title="HABITS"
-                columns={["name", "xp", "frequency"]}
-                rows={habits}
-                onAdd={() => console.log("ADD HABIT")}
-                onEdit={(row) => console.log("EDIT HABIT", row)}
-                onDelete={(row) => console.log("DELETE HABIT", row)}
+                title="QUESTS"
+                columns={quests.length > 0 ? Object.keys(quests[0]) : []}
+                rows={quests}
+                onAdd={() => openCreate("QUEST")}
             />
 
-            {/* PUNISHMENTS */}
-            <AdminTableCard
-                title="PUNISHMENTS"
-                columns={["name", "severity", "duration"]}
-                rows={punishments}
-                onAdd={() => console.log("ADD PUNISHMENT")}
-                onEdit={(row) => console.log("EDIT PUNISHMENT", row)}
-                onDelete={(row) => console.log("DELETE PUNISHMENT", row)}
+
+            <AdminPopup
+                open={popup.open}
+                mode={popup.mode}
+                entity={popup.entity}
+                data={popup.data}
+                onClose={closePopup}
+                onSubmit={handleSubmit}
             />
+
+            <br></br>
+            <br></br>
         </div>
     );
 }

@@ -1,0 +1,57 @@
+.quest-timer {
+  font-size: 11px;
+  letter-spacing: 1.5px;
+
+  padding: 4px 8px;
+  border-radius: 8px;
+
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(170, 120, 255, 0.35);
+
+  color: #b9a7d9;
+  white-space: nowrap;
+
+  transition: all 0.2s ease;
+}
+
+/* DANGER MODE */
+.quest-timer.danger {
+  color: #ff5c7a;
+  border-color: rgba(255, 92, 122, 0.6);
+  box-shadow: 0 0 10px rgba(255, 92, 122, 0.5);
+  animation: pulseDanger 1s infinite;
+}
+
+/* EXPIRED */
+.quest-timer.expired {
+  color: #ff5c7a;
+  border-color: rgba(255, 92, 122, 0.8);
+  box-shadow: 0 0 16px rgba(255, 92, 122, 0.8);
+  animation: none;
+}
+
+.quest-timer.completed {
+  color: #6aa9ff; /* system blue */
+  border-color: rgba(106, 169, 255, 0.6);
+  background: rgba(20, 30, 50, 0.65);
+
+  box-shadow:
+    0 0 10px rgba(106, 169, 255, 0.45),
+    inset 0 0 6px rgba(106, 169, 255, 0.25);
+
+  animation: none;
+}
+
+
+/* PULSE */
+@keyframes pulseDanger {
+  0% {
+    box-shadow: 0 0 8px rgba(255, 92, 122, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 14px rgba(255, 92, 122, 0.9);
+  }
+  100% {
+    box-shadow: 0 0 8px rgba(255, 92, 122, 0.4);
+  }
+}

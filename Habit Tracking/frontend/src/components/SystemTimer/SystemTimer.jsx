@@ -33,25 +33,28 @@ export default function SystemTimer({
     const { hours, minutes, seconds } = formatTime(timeLeft);
 
     const danger =
-        timeLeft <= 5 * 60 * 1000; // last 5 minutes
+        timeLeft <= 1 * 60 * 1000; // last 5 minutes
     return (
-        <div
-            className={`system-timer dramatic ${danger ? "danger" : ""} ${className}`}
-            style={style}
-        >
-            <span className={`timer-label ${danger ? "danger" : ""}`}>SYSTEM LOCK IN</span>
+        <div>
+            <div
+                className={`flex flex-col system-timer dramatic ${danger ? "danger" : ""} ${className}`}
+                style={style}
+            >
+                {/* <span className={`timer-label ${danger ? "danger" : ""}`}>SYSTEM LOCK IN</span> */}
 
-            <div className="timer-core">
-                <div className="timer-ring" />
-                <div className="timer-value">
-                    {hours > 0 && <span>{pad(hours)}:</span>}
-                    <span>{pad(minutes)}:</span>
-                    <span>{pad(seconds)}</span>
+                <div className="timer-core">
+                    <div className="timer-ring" />
+                    <div className="timer-value">
+                        {hours > 0 && <span>{pad(hours)}:</span>}
+                        <span>{pad(minutes)}:</span>
+                        <span>{pad(seconds)}</span>
+                    </div>
                 </div>
-            </div>
 
+
+            </div>
             {timeLeft === 0 && (
-                <span className="timer-locked">PUNISHMENT ASSIGNED</span>
+                <span className="timer-locked">PUNISHMENT WILL BE ASSIGNED</span>
             )}
         </div>
     );

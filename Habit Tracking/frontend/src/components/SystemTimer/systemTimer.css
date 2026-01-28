@@ -1,4 +1,4 @@
-.system-timer {
+/* .system-timer {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -12,7 +12,7 @@
 
     box-shadow: 0 0 20px rgba(150, 80, 255, 0.25);
     transition: all 0.2s ease;
-}
+} */
 
 
 /* LOCKED TEXT */
@@ -23,10 +23,10 @@
 }
 
 /* DANGER MODE */
-.system-timer.danger {
+/* .system-timer.danger {
     border-color: rgba(255, 92, 122, 0.6);
     box-shadow: 0 0 16px rgba(255, 92, 122, 0.5);
-}
+} */
 
 .system-timer.danger .timer-value {
     color: #ff5c7a;
@@ -56,9 +56,9 @@
 /* CORE */
 .timer-core {
     position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    /* display: flex; */
+    /* align-items: center; */
+    /* justify-content: center; */
 }
 
 /* RING */

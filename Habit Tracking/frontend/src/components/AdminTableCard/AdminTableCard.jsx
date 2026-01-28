@@ -8,65 +8,37 @@ export default function AdminTableCard({
     columns,
     rows,
     onAdd,
-    onEdit,
-    onDelete,
-    extraAction,
+    tableType,
     className = '',
-    style = {},
+    style = {}
 }) {
     return (
         <Card className={className} style={style}>
             <div className="admin-card-header">
-                <h3>{title}</h3> <Button variant="ghost" size="sm" onClick={onAdd}>
+                <h3>{title}</h3> { tableType !== "users" && <Button variant="ghost" size="sm" onClick={onAdd}>
                     <Plus size={14} />
                     <span>Add</span>
-                </Button>
+                </Button>}
             </div>
             <div className="admin-table-wrapper">
                 <table className="admin-table">
                     <thead>
                         <tr>
                             {columns.map((col) => (
-                                <th key={col}>{col}</th>
+                                <th key={col}>{col.toUpperCase().replaceAll("_", " ")}</th>
                             ))}
-                            <th>Action</th>
                         </tr>
                     </thead>
 
                     <tbody>
                         {rows.map((row, idx) => (
                             <tr key={idx}>
-                                {columns.map((col) => (
-                                    <td key={col}>{row[col]}</td>
-                                ))}
-
-                                <td className="admin-actions">
-                                    {extraAction && (
-                                        <button
-                                            className="icon-btn"
-                                            title={extraAction.label}
-                                            onClick={() => extraAction.onClick(row)}
-                                        >
-                                            <Plus size={14} />
-                                        </button>
-                                    )}
-
-                                    <button
-                                        className="icon-btn"
-                                        title="Edit"
-                                        onClick={() => onEdit(row)}
-                                    >
-                                        <Pencil size={14} />
-                                    </button>
-
-                                    <button
-                                        className="icon-btn danger"
-                                        title="Delete"
-                                        onClick={() => onDelete(row)}
-                                    >
-                                        <Trash2 size={14} />
-                                    </button>
-                                </td>
+                                {columns.map((col) => {
+                                    if (col == "id") {
+                                        return <td key={col}>{row[col].substring(0, 5)}</td>
+                                    }
+                                    else return <td key={col}>{row[col]}</td>
+                                })}
                             </tr>
                         ))}
                     </tbody>

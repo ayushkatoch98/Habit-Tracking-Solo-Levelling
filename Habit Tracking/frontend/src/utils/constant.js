@@ -1,0 +1,12 @@
+export const QUEST_STATUS = {
+    FAILED: "FAILED",
+    PENDING: "PENDING",
+    COMPLETED: "COMPLETED"
+}
+
+export const QUEST_TYPE = {
+    DAILY_QUEST: "DAILY_QUEST",
+    PENALTY: "PENALTY",
+    WEEKLY_QUEST: "WEEKLY_QUEST"
+}
+

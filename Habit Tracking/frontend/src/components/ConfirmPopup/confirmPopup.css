@@ -1,0 +1,29 @@
+.confirm-popup-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  font-size: 12px;
+  opacity: 0.9;
+}
+
+.confirm-popup-content p {
+  line-height: 1.5;
+}
+
+/* ACTIONS */
+.confirm-popup-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+/* DANGER BUTTON OVERRIDE */
+button.danger {
+  background: rgba(255, 92, 122, 0.2);
+  border: 1px solid rgba(255, 92, 122, 0.6);
+  color: #ff5c7a;
+}
+
+button.danger:hover {
+  box-shadow: 0 0 12px rgba(255, 92, 122, 0.8);
+}
