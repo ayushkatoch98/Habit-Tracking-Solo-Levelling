@@ -23,68 +23,96 @@ export default function QuestList({ title, items, onSelect, className = '', styl
     );
 }
 
-function QuestItem({ quest, onClick }) {
-  const completed = quest.status === QUEST_STATUS.COMPLETED;
-  console.log("completed", completed, quest.status, quest);
-  return (
-    <div
-      className={`quest-item ${completed ? "completed" : ""}`}
-      onClick={onClick}
-    >
-      <div className="quest-text">
-        <span className="quest-title">{quest.title}</span>
-        <span className="quest-subtitle">{quest.quest_type}</span>
-        {quest.description && (
-          <span className="quest-description">{quest.description}</span>
-        )}
-      </div>
 
-      {/* RIGHT SIDE */}
-      { !completed && quest.status !== QUEST_STATUS.FAILED && <div className="quest-right">
-        <QuestTimer completeBy={quest.complete_by} />
-      </div>
+function QuestItem({ quest, completed, onClick }) {
+    return (
+        <div
+            className={`quest-item ${completed ? "completed" : ""}`}
+            onClick={onClick}
+        >
+            <div className="quest-text">
+                <span className="quest-title">{quest.title}</span>
+                <span className="quest-subtitle">{quest.quest_type}</span>
+
+                {quest.description && (
+                    <span className="quest-description">
+                        {quest.description}
+                    </span>
+                )}
+
+                {/* ASSIGNED DATE */}
+                {quest.assigned_at && (
+                    <span className="quest-assigned">
+                        Assigned: {formatDate(quest.assigned_at)}
+                    </span>
+                )}
+            </div>
+
+            <div className="quest-right">
+                {
+                
+                    quest.status !== QUEST_STATUS.FAILED && <QuestTimer completeBy={quest.complete_by} isCompleted={quest.status == QUEST_STATUS.COMPLETED} />
+                
+                }
+            </div>
+        </div>
+    );
 }
-    </div>
-  );
-}
 
 
-function QuestTimer({ completeBy }) {
-  const [timeLeft, setTimeLeft] = useState(
-    Math.max(0, new Date(completeBy) - Date.now())
-  );
+function QuestTimer({ completeBy, isCompleted }) {
+    const [timeLeft, setTimeLeft] = useState(
+        Math.max(0, new Date(completeBy) - Date.now())
+    );
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setTimeLeft(Math.max(0, new Date(completeBy) - Date.now()));
-    }, 1000);
+    useEffect(() => {
+        // ⛔ Stop timer if completed
+        if (isCompleted) return;
 
-    return () => clearInterval(interval);
-  }, [completeBy]);
+        const interval = setInterval(() => {
+            setTimeLeft(Math.max(0, new Date(completeBy) - Date.now()));
+        }, 1000);
 
-  if (!completeBy) return null;
+        return () => clearInterval(interval);
+    }, [completeBy, isCompleted]);
 
-  const danger = timeLeft <= 15 * 60 * 1000; // last 15 minutes
-  const expired = timeLeft <= 0;
+    if (!completeBy) return null;
 
-  return (
-    <div
-      className={`quest-timer ${danger ? "danger" : ""} ${
-        expired ? "expired" : ""
-      }`}
-    >
-      {expired ? "TIME UP" : formatTime(timeLeft)}
-    </div>
-  );
+    // ✅ COMPLETED STATE (TOP PRIORITY)
+    if (isCompleted) {
+        return <div className="quest-timer completed">COMPLETED</div>;
+    }
+
+    const danger = timeLeft <= 15 * 60 * 1000;
+    const expired = timeLeft <= 0;
+
+    return (
+        <div
+            className={`quest-timer ${danger ? "danger" : ""} ${expired ? "expired" : ""
+                }`}
+        >
+            {expired ? "TIME UP" : formatTime(timeLeft)}
+        </div>
+    );
 }
 
 /* helpers */
 function formatTime(ms) {
-  const total = Math.floor(ms / 1000);
-  const h = Math.floor(total / 3600);
-  const m = Math.floor((total % 3600) / 60);
-  const s = total % 60;
+    const total = Math.floor(ms / 1000);
+    const h = Math.floor(total / 3600);
+    const m = Math.floor((total % 3600) / 60);
+    const s = total % 60;
 
-  if (h > 0) return `${h}h ${m}m`;
-  return `${m}m ${s}s`;
+    if (h > 0) return `${h}h ${m}m`;
+    return `${m}m ${s}s`;
+}
+
+function formatDate(date) {
+    const d = new Date(date);
+
+    return d.toLocaleDateString(undefined, {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+    });
 }

@@ -41,6 +41,13 @@ export default function Dashboard() {
 
     useEffect(() => {
 
+        instance.get("/quest-logs/compare").then(res => {
+            console.log(res.data);
+        }).catch(err => {
+            console.log("Error", err)
+            alert(err.response.data.message)
+        });
+
         instance.get("/quest-logs").then(res => {
             console.log(res.data);
             setQuests([...res.data])
@@ -58,6 +65,7 @@ export default function Dashboard() {
             return;
         }
 
+       
         const newStatus = QUEST_STATUS.COMPLETED
 
         // 1️⃣ Optimistic UI update
@@ -102,13 +110,7 @@ export default function Dashboard() {
             <XPBar level={20} currentXP={600} requiredXP={1000} />
             <br />
 
-            <SystemTimer
-                deadline={deadline.getTime()}
-                onExpire={() => {
-                    console.log("LOCKED → APPLY PUNISHMENTS");
-                }}
-            />
-            <br />
+ 
 
             <QuestList
                 title="Plan"
@@ -129,7 +131,7 @@ export default function Dashboard() {
                 title="Punishments"
                 items={punishmentQuests}
                 onSelect={(quest) => {
-                    if (quest.status === QUEST_STATUS.PENDING) setShowConfirm({ isOpen: true, quest: {...quest} })
+                    if (quest.status === QUEST_STATUS.PENDING && new Date(quest.complete_by) > Date.now()) setShowConfirm({ isOpen: true, quest: {...quest} })
                 }}
             />
             <ConfirmPopup

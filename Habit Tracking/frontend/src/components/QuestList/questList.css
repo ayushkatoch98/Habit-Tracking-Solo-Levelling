@@ -4,7 +4,13 @@
   margin-bottom: 10px;
   color: #b9a7d9;
 }
-
+.quest-assigned {
+  margin-top: 4px;
+  font-size: 10px;
+  letter-spacing: 1px;
+  opacity: 0.55;
+  color: #b9a7d9;
+}
 .quest-right {
   display: flex;
   align-items: center;

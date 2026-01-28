@@ -27,8 +27,11 @@ async function assignNewQuestToUser(userId, quest_type, client) {
                     console.log(`User ${userId} already has a pending quest of type ${quest_type}. Skipping assignment.`);
                     continue;
                 }
-                console.log("ERR", err)
-                throw err;
+                else{
+                    console.log("ERR", err)
+                    throw err;
+
+                }
             }
         }
         console.log(`Assigned new daily quest to user ${userId}.`);
@@ -102,11 +105,13 @@ cron.schedule("* * * * *", async () => {
                 const userId = user.id;
                 // Check if the user has a pending daily quest from the previous day
                 const { assignPenalty, totalFailedXp } = await markPendingQuestAsFailed(userId, QUEST_TYPE.DAILY_QUEST, client);
+                const {assignPenalty: assignPenalty2, totalFailedXp: totalFailedXp2} = await markPendingQuestAsFailed(userId, QUEST_TYPE.PENALTY, client);
                 // assign penalty quest if they failed to complete previous day's daily quest
-                if (assignPenalty) {
+                if (assignPenalty || assignPenalty2) {
                     // Subtract failed XP
-                    if (totalFailedXp > 0) {
-                        await applyXpDelta(userId, -totalFailedXp, client);
+                    const finalTotalFailedXp = totalFailedXp + totalFailedXp2;
+                    if (finalTotalFailedXp > 0) {
+                        await applyXpDelta(userId, -finalTotalFailedXp, client);
                     }
                     await assignPenaltyQuestToUser(userId, client);
                 }
