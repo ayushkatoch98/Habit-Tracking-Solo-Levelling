@@ -41,14 +41,7 @@ export default function Dashboard() {
 
     useEffect(() => {
 
-        instance.get("/quest-logs/compare").then(res => {
-            console.log(res.data);
-        }).catch(err => {
-            console.log("Error", err)
-            alert(err.response.data.message)
-        });
-
-        instance.get("/quest-logs").then(res => {
+        instance.get("/quest-logs/dashboard").then(res => {
             console.log(res.data);
             setQuests([...res.data])
         }).catch(err => {
@@ -119,14 +112,7 @@ export default function Dashboard() {
             />
 
             <br />
-
-            <QuestList
-                title="Completed"
-                items={completedQuests}
-                onSelect={() => {}}
-            />
-
-            <br />
+            
             <QuestList
                 title="Punishments"
                 items={punishmentQuests}
@@ -134,6 +120,15 @@ export default function Dashboard() {
                     if (quest.status === QUEST_STATUS.PENDING && new Date(quest.complete_by) > Date.now()) setShowConfirm({ isOpen: true, quest: {...quest} })
                 }}
             />
+
+            <br />
+
+            <QuestList
+                title="Completed"
+                items={completedQuests}
+                onSelect={() => {}}
+            />
+
             <ConfirmPopup
                 open={showConfirm.isOpen}
                 title="MARK QUEST AS COMPLETED?"

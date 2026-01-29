@@ -2,8 +2,6 @@ require("dotenv").config();
 const validateEnv = require("./config/env");
 const app = require("./app");
 
-require("./cron/dailyQuestCron");
-
 // Validate environment variables
 validateEnv();
 

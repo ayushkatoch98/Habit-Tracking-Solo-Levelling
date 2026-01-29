@@ -7,22 +7,19 @@ const { applyXpDelta, QUEST_STATUS } = require("../constant");
 router.use(authMiddleware);
 
 // endpoint to get quest logs for the authenticated user with filters like status and date range
-router.get("/", async (req, res, next) => {
+router.get("/dashboard", async (req, res, next) => {
     const userId = req.userId;
     // default startDateTime = today - 2 days and endDate = today 
-    const { status, startDate = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), endDate = new Date().toISOString() } = req.query;
+    const today = new Date().toISOString().split("T")[0];
+    const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().split("T")[0];
+    const { startDate = today, endDate = today } = req.query;
 
     let query = `SELECT ql.id as id, q.title as title, ql.status as status , q.quest_type as quest_type, q.description as description, ql.complete_by as complete_by, ql.assigned_at as assigned_at
-    FROM quest_logs ql JOIN quests q ON ql.quest_id = q.id WHERE ql.user_id = $1 AND ql.status != $2 `;
-    const params = [userId, QUEST_STATUS.FAILED];
-
-    if (status) {
-        query += " AND ql.status = $2";
-        params.push(status);
-    }
+    FROM quest_logs ql JOIN quests q ON ql.quest_id = q.id WHERE ql.user_id = $1`;
+    const params = [userId];
 
     if (startDate && endDate) {
-        query += " AND ql.assigned_at >= $3 AND ql.assigned_at <= $4";
+        query += " AND DATE(ql.assigned_at) BETWEEN $2 AND $3";
         params.push(startDate, endDate);
     }
 
@@ -37,80 +34,137 @@ router.get("/", async (req, res, next) => {
 });
 
 
-// comparison endpoint that compare data between two dates and all the users in the system
 router.get("/compare", async (req, res, next) => {
-    const { status, startDate, endDate } = req.query;
+    const { startDate, endDate } = req.query;
 
-    const userId = req.userId;
+    let whereCondition = "";
+    let dynamicParams = [];
 
-    // I want data like, quest completed, quest failed, penalty quest assigned , pending quests, penalty quest failed, completed etc. also join users table
-    let query = `SELECT ql.id as id, q.title as title, ql.status as status , q.quest_type as quest_type, q.description as description, ql.complete_by as complete_by, ql.assigned_at as assigned_at
-                FROM quest_logs ql JOIN quests q ON ql.quest_id = q.id WHERE ql.user_id = $1
-                `;
-
-    const params = [userId];
-    let paramIndex = 2;
-
-    if (status) {
-        query += ` AND ql.status = $${paramIndex}`;
-        params.push(status);
-        paramIndex++;
-    }
     if (startDate && endDate) {
-        query += ` AND ql.assigned_at BETWEEN $${paramIndex} AND $${paramIndex + 1}`;
-        params.push(startDate, endDate);
-        paramIndex += 2;
+        console.log("Applying date filter", startDate, endDate);
+        whereCondition = " WHERE DATE(ql.assigned_at) BETWEEN $1 AND $2 ";
+        dynamicParams = [startDate, endDate];
     }
-    query += " ORDER BY ql.assigned_at DESC";
+
     try {
-        const result = await pool.query(query, params);
+        const result = await pool.query(
+            `
+            WITH base AS (
+                SELECT
+                    u.id AS user_id,
+                    u.username,
+                    q.quest_type,
+                    ql.status,
+                    q.quest_xp,
+                    q.failed_xp
+                FROM quest_logs ql
+                JOIN quests q ON ql.quest_id = q.id
+                JOIN users u ON ql.user_id = u.id
+                 ${whereCondition}
+            )
+            SELECT
+                user_id,
+                username,
 
-        // categorize the results by status, quest_type, failed or completed within deadline etc.
-        const output = {}
+                COUNT(*) FILTER (WHERE quest_type = 'DAILY_QUEST') AS daily_total,
+                COUNT(*) FILTER (WHERE quest_type = 'DAILY_QUEST' AND status = 'COMPLETED') AS daily_completed,
+                COUNT(*) FILTER (WHERE quest_type = 'DAILY_QUEST' AND status = 'FAILED') AS daily_failed,
+                COUNT(*) FILTER (WHERE quest_type = 'DAILY_QUEST' AND status = 'PENDING') AS daily_pending,
 
-        output["completed"] = result.rows.filter(q => q.status === QUEST_STATUS.COMPLETED);
-        output["failed"] = result.rows.filter(q => q.status === QUEST_STATUS.FAILED);
-        output["pending"] = result.rows.filter(q => q.status === QUEST_STATUS.PENDING);
-        output["penalty"] = result.rows.filter(q => q.quest_type === "PENALTY");
+                COUNT(*) FILTER (WHERE quest_type = 'PENALTY') AS penalty_assigned,
+                COUNT(*) FILTER (WHERE quest_type = 'PENALTY' AND status = 'COMPLETED') AS penalty_completed,
+                COUNT(*) FILTER (WHERE quest_type = 'PENALTY' AND status = 'FAILED') AS penalty_failed,
 
-        output["penalty_completed"] = output["penalty"].filter(q => q.status === QUEST_STATUS.COMPLETED);
-        output["penalty_failed"] = output["penalty"].filter(q => q.status === QUEST_STATUS.FAILED);
-        output["penalty_pending"] = output["penalty"].filter(q => q.status === QUEST_STATUS.PENDING);
+                COALESCE(SUM(quest_xp) FILTER (WHERE status = 'COMPLETED'), 0) AS xp_gained,
+                COALESCE(SUM(failed_xp) FILTER (WHERE status = 'FAILED'), 0) AS xp_lost
 
-        output["completed_within_deadline"] = output["completed"].filter(q => new Date(q.complete_by) >= new Date(q.assigned_at));
+            FROM base
+            GROUP BY user_id, username
+            ORDER BY username;
+            `,
+            dynamicParams
+        );
 
-        output["completed_after_deadline"] = output["completed"].filter(q => new Date(q.complete_by) < new Date(q.assigned_at));
+        const users = result.rows.map(u => {
+            const netXp = u.xp_gained - u.xp_lost;
+            const failureRate = u.daily_total > 0
+                ? +(u.daily_failed / u.daily_total * 100).toFixed(1)
+                : 0;
 
-        output["daily_quests_completed"] = output["completed"].filter(q => {
-            const assignedDate = new Date(q.assigned_at);
-            const completedDate = new Date(q.complete_by);
-            return (completedDate - assignedDate) <= 24 * 60 * 60 * 1000; // within 24 hours
+            return {
+                username: u.username,
+                stats: {
+                    daily_completed: Number(u.daily_completed),
+                    daily_failed: Number(u.daily_failed),
+                    daily_pending: Number(u.daily_pending),
+
+                    penalty_assigned: Number(u.penalty_assigned),
+                    penalty_completed: Number(u.penalty_completed),
+                    penalty_failed: Number(u.penalty_failed),
+
+                    xp_gained: Number(u.xp_gained),
+                    xp_lost: Number(u.xp_lost),
+                    net_xp: netXp,
+
+                    failure_rate: failureRate
+                }
+            };
         });
 
-        output["daily_quests_failed"] = output["failed"].filter(q => {
-            const assignedDate = new Date(q.assigned_at);
-            const failedDate = new Date(q.complete_by);
-            return (failedDate - assignedDate) <= 24 * 60 * 60 * 1000; // within 24 hours
+        // Decide winner (simple + brutal)
+        let winner = null;
+        if (users.length === 2) {
+            winner =
+                users[0].stats.net_xp >= users[1].stats.net_xp
+                    ? users[0].username
+                    : users[1].username;
+        }
+
+        res.status(200).json({
+            range: { startDate, endDate },
+            users,
+            winner
+        });
+
+    } catch (err) {
+        next(err);
+    }
+});
+
+
+// get all quests grouped by assigned at 
+router.get("/others", async (req, res, next) => {
+    const userId = req.userId;
+    try {
+        // get all quests group by assigned at 
+        const result = await pool.query(
+            `SELECT
+                    ql.id AS id,
+                    q.title AS title,
+                    ql.status AS status,
+                    q.quest_type AS quest_type,
+                    q.description AS description,
+                    ql.complete_by AS complete_by,
+                    ql.assigned_at AS assigned_at
+                FROM quest_logs ql
+                JOIN quests q ON ql.quest_id = q.id
+                WHERE ql.user_id = $1
+                ORDER BY ql.assigned_at::date DESC, ql.assigned_at DESC;
+            `,
+            [userId]
+        );
+
+        output = {};
+        // group by assigned at date
+        result.rows.forEach(questLog => {
+            const dateKey = questLog.assigned_at.toISOString().split('T')[0];
+            if (!output[dateKey]) {
+                output[dateKey] = [];
+            }
+            output[dateKey].push(questLog);
         });
 
         res.status(200).json(output);
-    } catch (err) {
-        next(err);
-    }
-
-});
-
-// get failed quests
-router.get("/failed", async (req, res, next) => {
-    const userId = req.userId;
-    try {
-        const result = await pool.query(
-            `SELECT ql.id as id, q.title as title, ql.status as status , q.quest_type as quest_type, q.description as description, ql.complete_by as complete_by, ql.assigned_at as assigned_at 
-             FROM quest_logs ql JOIN quests q ON ql.quest_id = q.id 
-             WHERE ql.user_id = $1 AND ql.status = $2 ORDER BY ql.assigned_at DESC`,
-            [userId, QUEST_STATUS.FAILED]
-        );
-        res.status(200).json(result.rows);
     } catch (err) {
         next(err);
     }
@@ -119,6 +173,7 @@ router.get("/failed", async (req, res, next) => {
 // endpoint to update the status of a quest log (e.g., mark as completed)
 router.put("/:id", async (req, res, next) => {
     const userId = req.userId;
+    const userEmail = req.userEmail;
     const questLogId = req.params.id;
     const { status } = req.body;
 
@@ -152,7 +207,7 @@ router.put("/:id", async (req, res, next) => {
             await client.query("ROLLBACK");
             return res.status(400).json({ message: "Quest log is already completed" });
         }
-        
+
         console.log("complete by", questLogResult.rows[0].complete_by, "new Date()", new Date());
         if (new Date() > new Date(questLogResult.rows[0].complete_by)) {
             await client.query("ROLLBACK");
@@ -166,7 +221,7 @@ router.put("/:id", async (req, res, next) => {
         updatedQuestLog = updateResult.rows[0];
         // Add XP to user
         const questXp = questLogResult.rows[0].quest_xp;
-        await applyXpDelta(userId, questXp, client);
+        await applyXpDelta(userId, userEmail, questXp, client);
 
 
         await client.query("COMMIT");

@@ -51,7 +51,7 @@ function QuestItem({ quest, completed, onClick }) {
             <div className="quest-right">
                 {
                 
-                    quest.status !== QUEST_STATUS.FAILED && <QuestTimer completeBy={quest.complete_by} isCompleted={quest.status == QUEST_STATUS.COMPLETED} />
+                    <QuestTimer completeBy={quest.complete_by} isFailed={quest.status == QUEST_STATUS.FAILED} isCompleted={quest.status == QUEST_STATUS.COMPLETED} />
                 
                 }
             </div>
@@ -60,7 +60,7 @@ function QuestItem({ quest, completed, onClick }) {
 }
 
 
-function QuestTimer({ completeBy, isCompleted }) {
+function QuestTimer({ completeBy, isFailed, isCompleted }) {
     const [timeLeft, setTimeLeft] = useState(
         Math.max(0, new Date(completeBy) - Date.now())
     );
@@ -81,6 +81,9 @@ function QuestTimer({ completeBy, isCompleted }) {
     // ✅ COMPLETED STATE (TOP PRIORITY)
     if (isCompleted) {
         return <div className="quest-timer completed">COMPLETED</div>;
+    }
+    if (isFailed) {
+        return <div className="quest-timer failed">FAILED</div>;
     }
 
     const danger = timeLeft <= 15 * 60 * 1000;

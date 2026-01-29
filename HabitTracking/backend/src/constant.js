@@ -20,7 +20,8 @@ export function xpRequiredForLevel(level) {
     return Math.floor(100 * Math.pow(level, 1.5));
 }
 
-export async function applyXpDelta(userId, xpDelta, client) {
+export async function applyXpDelta(userId, userEmail, xpDelta, client) {
+    console.log(`Applying XP delta of ${xpDelta} to user ${userEmail}`);
     await client.query('BEGIN');
 
     try {

@@ -7,15 +7,15 @@ import instance from "../../../axisInstance";
 import { QUEST_STATUS, QUEST_TYPE } from "../../../../backend/src/constant";
 import ConfirmPopup from "../../components/ConfirmPopup/ConfirmPopup";
 
-export default function Failed() {
+export default function OtherQuests() {
 
-    const [quests, setQuests] = useState([])
+    const [quests, setQuests] = useState({})
 
     useEffect(() => {
 
-        instance.get("/quest-logs/failed").then(res => {
+        instance.get("/quest-logs/others").then(res => {
             console.log(res.data);
-            setQuests([...res.data])
+            setQuests({...res.data})
         }).catch(err => {
             console.log("Error", err)
             alert(err.response.data.message)
@@ -29,11 +29,21 @@ export default function Failed() {
 
             <br />
 
-            <QuestList
-                title="Failed Quests"
-                items={quests}
-                onSelect={() => {}}
-            />
+            {
+                Object.keys(quests).map((dateKey, index) => {
+                    return <>
+                        <QuestList
+                            key={`other-quests-${index}`}
+                            title={`Quests for ${dateKey}`}
+                            items={quests[dateKey]}
+                            onSelect={() => { }}
+                        />
+                        <br />
+                    </>
+                })
+            }
+
+       
 
            <br />
            <br />
