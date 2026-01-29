@@ -9,80 +9,82 @@ import instance from "../../../axisInstance";
 
 export default function Compare() {
 
-    
+
     const today = (new Date()).toISOString().split("T")[0];
-    
+
     const [range, setRange] = useState({ from: today, to: today });
-    const [compareData, setCompareData] = useState({ users: [
-        {
-            "username": "ak",
-            "stats": {
-                "daily_completed": 21,
-                "daily_failed": 155,
-                "daily_pending": 4,
-                "penalty_assigned": 22,
-                "penalty_completed": 3,
-                "penalty_failed": 19,
-                "xp_gained": 1040,
-                "xp_lost": 6755,
-                "net_xp": -5715,
-                "failure_rate": 86.1
+    const [compareData, setCompareData] = useState({
+        users: [
+            {
+                "username": "ak",
+                "stats": {
+                    "daily_completed": 0,
+                    "daily_failed": 0,
+                    "daily_pending": 0,
+                    "penalty_assigned": 0,
+                    "penalty_completed": 0,
+                    "penalty_failed": 0,
+                    "xp_gained": 0,
+                    "xp_lost": 0,
+                    "net_xp": 0,
+                    "failure_rate": 0
+                }
+            },
+            {
+                "username": "bk",
+                "stats": {
+                    "daily_completed": 0,
+                    "daily_failed": 0,
+                    "daily_pending": 0,
+                    "penalty_assigned": 0,
+                    "penalty_completed": 0,
+                    "penalty_failed": 0,
+                    "xp_gained": 0,
+                    "xp_lost": 0,
+                    "net_xp": 0,
+                    "failure_rate": 0
+                }
             }
-        },
-        {
-            "username": "bk",
-            "stats": {
-                "daily_completed": 45,
-                "daily_failed": 155,
-                "daily_pending": 4,
-                "penalty_assigned": 22,
-                "penalty_completed": 3,
-                "penalty_failed": 19,
-                "xp_gained": 1040,
-                "xp_lost": 6755,
-                "net_xp": -5715,
-                "failure_rate": 86.1
-            }
-        }
-    ], winner: null });
-    
-//     {
-//     "range": {},
-//     "users": [
-//         {
-//             "username": "ak",
-//             "stats": {
-//                 "daily_completed": 21,
-//                 "daily_failed": 155,
-//                 "daily_pending": 4,
-//                 "penalty_assigned": 22,
-//                 "penalty_completed": 3,
-//                 "penalty_failed": 19,
-//                 "xp_gained": 1040,
-//                 "xp_lost": 6755,
-//                 "net_xp": -5715,
-//                 "failure_rate": 86.1
-//             }
-//         },
-        
-//         {
-//             "username": "bk",
-//             "stats": {
-//                 "daily_completed": 21,
-//                 "daily_failed": 155,
-//                 "daily_pending": 4,
-//                 "penalty_assigned": 22,
-//                 "penalty_completed": 3,
-//                 "penalty_failed": 19,
-//                 "xp_gained": 1040,
-//                 "xp_lost": 6755,
-//                 "net_xp": -5715,
-//                 "failure_rate": 86.1
-//             }
-//         }
-//     ],
-//     "winner": null
-// }
+        ], winner: null
+    });
+
+    //     {
+    //     "range": {},
+    //     "users": [
+    //         {
+    //             "username": "ak",
+    //             "stats": {
+    //                 "daily_completed": 21,
+    //                 "daily_failed": 155,
+    //                 "daily_pending": 4,
+    //                 "penalty_assigned": 22,
+    //                 "penalty_completed": 3,
+    //                 "penalty_failed": 19,
+    //                 "xp_gained": 1040,
+    //                 "xp_lost": 6755,
+    //                 "net_xp": -5715,
+    //                 "failure_rate": 86.1
+    //             }
+    //         },
+
+    //         {
+    //             "username": "bk",
+    //             "stats": {
+    //                 "daily_completed": 21,
+    //                 "daily_failed": 155,
+    //                 "daily_pending": 4,
+    //                 "penalty_assigned": 22,
+    //                 "penalty_completed": 3,
+    //                 "penalty_failed": 19,
+    //                 "xp_gained": 1040,
+    //                 "xp_lost": 6755,
+    //                 "net_xp": -5715,
+    //                 "failure_rate": 86.1
+    //             }
+    //         }
+    //     ],
+    //     "winner": null
+    // }
 
     // useEffect(() =>{
     //     instance.get("/quest-logs/compare").then(res => {
@@ -113,7 +115,7 @@ export default function Compare() {
         });
     }, [range])
 
-  
+
 
     return (
         <div className="max-w-5xl mx-auto compare-page">
@@ -143,13 +145,13 @@ export default function Compare() {
                 compareData.users.length === 0 && (
                     <div className="text-center text-gray-400">
                         No data available for the selected date range.
-                    </div> 
+                    </div>
                 )
             }
 
-       
+
             <ComparisonTable users={compareData.users} />
-            
+
         </div>
     );
 }
@@ -211,8 +213,8 @@ function FailureRateBar({ rate }) {
         rate < 30
             ? "bg-green-500"
             : rate < 60
-            ? "bg-yellow-500"
-            : "bg-red-600";
+                ? "bg-yellow-500"
+                : "bg-red-600";
 
     return (
         <div>
@@ -239,20 +241,20 @@ function Stat({ label, value }) {
     );
 }
 function RangeButton({ days, label, setRange }) {
-  const handleClick = () => {
-    const to = new Date();
-    const from = new Date();
-    from.setDate(to.getDate() - (days - 1));
+    const handleClick = () => {
+        const to = new Date();
+        const from = new Date();
+        from.setDate(to.getDate() - (days - 1));
 
-    setRange({
-      from: from.toISOString().slice(0, 10),
-      to: to.toISOString().slice(0, 10),
-    });
-  };
+        setRange({
+            from: from.toISOString().slice(0, 10),
+            to: to.toISOString().slice(0, 10),
+        });
+    };
 
-  return (
-    <button className="range-btn" onClick={handleClick}>
-      {label}
-    </button>
-  );
+    return (
+        <button className="range-btn" onClick={handleClick}>
+            {label}
+        </button>
+    );
 }
