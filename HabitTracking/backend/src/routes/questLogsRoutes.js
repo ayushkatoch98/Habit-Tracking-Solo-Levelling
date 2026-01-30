@@ -12,7 +12,7 @@ router.get("/dashboard", async (req, res, next) => {
     // default startDateTime = today - 2 days and endDate = today 
     const today = new Date().toISOString().split("T")[0];
     const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().split("T")[0];
-    const { startDate = today, endDate = today } = req.query;
+    const { startDate = yesterday, endDate = today } = req.query;
 
     let query = `SELECT ql.id as id, q.title as title, ql.status as status , q.quest_type as quest_type, q.description as description, ql.complete_by as complete_by, ql.assigned_at as assigned_at
     FROM quest_logs ql JOIN quests q ON ql.quest_id = q.id WHERE ql.user_id = $1`;
