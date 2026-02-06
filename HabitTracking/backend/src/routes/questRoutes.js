@@ -13,6 +13,7 @@ router.use(authMiddleware);
 // Create a new quest
 router.post("/", async (req, res, next) => {
     const { quest_type, title, description, quest_xp, failed_xp } = req.body;
+    const userId = req.userId;
     try {
         
         if (!quest_type){
@@ -45,8 +46,8 @@ router.post("/", async (req, res, next) => {
         }
 
         const result = await pool.query(
-            "INSERT INTO quests (quest_type, title, description, quest_xp, failed_xp, quest_duration) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *",
-            [quest_type, title, description, questXpInt, failedXpInt, quest_duration]
+            "INSERT INTO quests (user_id, quest_type, title, description, quest_xp, failed_xp, quest_duration) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *",
+            [userId, quest_type, title, description, questXpInt, failedXpInt, quest_duration]
         );
         res.status(201).json(result.rows[0]);
     } catch (err) {
@@ -58,9 +59,10 @@ router.post("/", async (req, res, next) => {
 router.get("/", async (req, res, next) => {
     try {
         const userId = req.userId;
-        // get all quest 
+        // get all quests for user
         const result = await pool.query(
-            "SELECT * FROM quests"
+            "SELECT * FROM quests WHERE user_id = $1",
+            [userId]
         );
         res.status(200).json(result.rows);
     } catch (err) {

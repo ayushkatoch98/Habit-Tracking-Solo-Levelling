@@ -4,93 +4,87 @@ const pool = require("../config/db");
 const { QUEST_STATUS, QUEST_TYPE, applyXpDelta } = require("../constant");
 
 
-async function assignNewQuestToUser(userId, userEmail, quest_type, client) {
-    console.log("Assigning new quest of type", quest_type, "to user", userEmail);
-    const dailyQuestResult = await client.query(
-        `SELECT id, quest_duration FROM quests WHERE quest_type = $1 ORDER BY RANDOM()`,
-        [quest_type]
-    );
-
-    if (dailyQuestResult.rows.length > 0) {
-
-        for (const dq of dailyQuestResult.rows) {
-            const dailyQuestId = dq.id;
-            const dailyQuestDuration = dq.quest_duration;
-
-            await client.query('BEGIN'); // Start a new transaction
-            try {
-                await client.query(
-                    `INSERT INTO quest_logs (user_id, quest_id, status, assigned_at, complete_by) 
-                                 VALUES ($1, $2, $3, NOW(), NOW() + ($4 || ' minutes')::interval)`,
-                    [userId, dailyQuestId, QUEST_STATUS.PENDING, dailyQuestDuration]
-                );
-            } catch (err) {
-                // likely unique constraint violation - user already has a pending quest of this type
-                await client.query('ROLLBACK'); // Rollback the current transaction
-                if (err.code === '23505') {
-                    console.log(`User ${userEmail} already has a pending quest of type ${quest_type}. Skipping assignment.`);
-                    continue;
-                }
-                else {
-                    console.log("ERR", err)
-                    throw err;
-                }
-            } finally {
-                await client.query('COMMIT'); // Commit the transaction
-            }
-        }
-        console.log(`Assigned new daily quest to user ${userEmail}.`);
-    }
-}
-
-async function shouldAssignWeeklyQuest(userId, client) {
+async function hasPendingQuestType(userId, quest_type, client) {
     const result = await client.query(
-        `SELECT ql.assigned_at
+        `SELECT 1
          FROM quest_logs ql
          JOIN quests q ON ql.quest_id = q.id
-         WHERE ql.user_id = $1 AND q.quest_type = $2
-         ORDER BY ql.assigned_at DESC
+         WHERE ql.user_id = $1
+           AND q.user_id = $1
+           AND q.quest_type = $2
+           AND ql.status = $3
          LIMIT 1`,
-        [userId, QUEST_TYPE.WEEKLY_QUEST]
+        [userId, quest_type, QUEST_STATUS.PENDING]
     );
+    return result.rows.length > 0;
+}
 
-    if (result.rows.length === 0) {
-        return true;
-    }
-
-    const lastAssignedAt = new Date(result.rows[0].assigned_at);
+function isAfterHourUtc(hourUtc) {
     const now = new Date();
-    const diffMs = now - lastAssignedAt;
-    const sevenDaysMs = 7 * 24 * 60 * 60 * 1000;
+    return now.getUTCHours() >= hourUtc;
+}
 
-    return diffMs >= sevenDaysMs;
+function isMondayUtc() {
+    const now = new Date();
+    return now.getUTCDay() === 1;
+}
+
+async function hasAssignedThisWeek(userId, quest_type, client) {
+    const result = await client.query(
+        `SELECT 1
+         FROM quest_logs ql
+         JOIN quests q ON ql.quest_id = q.id
+         WHERE ql.user_id = $1
+           AND q.user_id = $1
+           AND q.quest_type = $2
+           AND date_trunc('week', ql.assigned_at) = date_trunc('week', NOW())
+         LIMIT 1`,
+        [userId, quest_type]
+    );
+    return result.rows.length > 0;
+}
+
+async function assignAllQuestsByTypeForToday(userId, userEmail, quest_type, client) {
+    console.log("Assigning all quests of type", quest_type, "to user", userEmail);
+    await client.query(
+        `INSERT INTO quest_logs (user_id, quest_id, status, assigned_at, complete_by)
+         SELECT $1, q.id, $2, NOW(), NOW() + (q.quest_duration || ' minutes')::interval
+         FROM quests q
+         WHERE q.quest_type = $3
+           AND q.user_id = $1
+           AND NOT EXISTS (
+             SELECT 1
+             FROM quest_logs ql
+             WHERE ql.user_id = $1
+               AND ql.quest_id = q.id
+               AND ql.assigned_date = CURRENT_DATE
+           )`,
+        [userId, QUEST_STATUS.PENDING, quest_type]
+    );
 }
 
 async function assignPenaltyQuestToUser(userId, userEmail, client) {
     console.log("Assigning penalty quest to user", userEmail);
+    const hasPending = await hasPendingQuestType(userId, QUEST_TYPE.PENALTY, client);
+    if (hasPending) {
+        console.log(`User ${userEmail} already has a pending penalty quest. Skipping assignment.`);
+        return;
+    }
     const penaltyQuestResult = await client.query(
-        `SELECT id, quest_duration FROM quests WHERE quest_type = $1 ORDER BY RANDOM() LIMIT 1`,
-        [QUEST_TYPE.PENALTY]
+        `SELECT id, quest_duration FROM quests WHERE quest_type = $1 AND user_id = $2 ORDER BY RANDOM() LIMIT 1`,
+        [QUEST_TYPE.PENALTY, userId]
     );
 
     if (penaltyQuestResult.rows.length > 0) {
         const penaltyQuestId = penaltyQuestResult.rows[0].id;
         const penaltyQuestDuration = penaltyQuestResult.rows[0].quest_duration;
-        await client.query('BEGIN'); // Start a new transaction
-        try{
-            await client.query(
-                `INSERT INTO quest_logs (user_id, quest_id, status, assigned_at, complete_by) 
-                                 VALUES ($1, $2, $3, NOW(), NOW() + ($4 || ' minutes')::interval)`,
-                [userId, penaltyQuestId, QUEST_STATUS.PENDING, penaltyQuestDuration]
-            );
-            console.log(`Assigned penalty quest to user ${userEmail} for failing daily quest.`);
-        }catch(err){
-            await client.query('ROLLBACK');
-            console.log("Failed to assign penalty quest to user", err);
-        }
-        finally {
-            await client.query('COMMIT');
-        }
+        await client.query(
+            `INSERT INTO quest_logs (user_id, quest_id, status, assigned_at, complete_by) 
+             VALUES ($1, $2, $3, NOW(), NOW() + ($4 || ' minutes')::interval)
+             ON CONFLICT DO NOTHING`,
+            [userId, penaltyQuestId, QUEST_STATUS.PENDING, penaltyQuestDuration]
+        );
+        console.log(`Assigned penalty quest to user ${userEmail} for failing daily quest.`);
     }
 }
 
@@ -151,11 +145,11 @@ router.get("/run", async (req, res) => {
             for (const user of users) {
                 const userId = user.id;
                 const userEmail = user.email;
-                // Check if the user has a pending daily quest from the previous day
+                // Mark expired pending quests as failed
                 const { assignPenalty, totalFailedXp } = await markPendingQuestAsFailed(userId, userEmail, QUEST_TYPE.DAILY_QUEST, client);
                 const { assignPenalty: assignPenalty2, totalFailedXp: totalFailedXp2 } = await markPendingQuestAsFailed(userId, userEmail, QUEST_TYPE.PENALTY, client);
                 const { assignPenalty: assignPenalty3, totalFailedXp: totalFailedXp3 } = await markPendingQuestAsFailed(userId, userEmail, QUEST_TYPE.WEEKLY_QUEST, client);
-                // assign penalty quest if they failed to complete previous day's daily quest
+                // Assign penalty quest if anything failed
                 if (assignPenalty || assignPenalty2 || assignPenalty3) {
                     // Subtract failed XP
                     const finalTotalFailedXp = totalFailedXp + totalFailedXp2 + totalFailedXp3;
@@ -164,11 +158,13 @@ router.get("/run", async (req, res) => {
                     }
                     await assignPenaltyQuestToUser(userId, userEmail, client);
                 }
-                // Assign new daily quest
-                await assignNewQuestToUser(userId, userEmail, QUEST_TYPE.DAILY_QUEST, client);
-                // Assign weekly quest only if due (every 7 days)
-                if (await shouldAssignWeeklyQuest(userId, client)) {
-                    await assignNewQuestToUser(userId, userEmail, QUEST_TYPE.WEEKLY_QUEST, client);
+                // Assign all daily quests once per day after 3am
+                if (isAfterHourUtc(3)) {
+                    await assignAllQuestsByTypeForToday(userId, userEmail, QUEST_TYPE.DAILY_QUEST, client);
+                }
+                // Assign all weekly quests on Mondays after 3am, only once per week
+                if (isAfterHourUtc(3) && isMondayUtc() && !(await hasAssignedThisWeek(userId, QUEST_TYPE.WEEKLY_QUEST, client))) {
+                    await assignAllQuestsByTypeForToday(userId, userEmail, QUEST_TYPE.WEEKLY_QUEST, client);
                 }
 
             }

@@ -13,13 +13,13 @@
 
 }
 .system-btn.primary {
-    background: linear-gradient(135deg, #4de0ff, #2b7bff);
+    background: linear-gradient(135deg, #4de0ff, #1f6dff);
     display: inline;
     align-items: center;
 }
 
 .system-btn.danger {
-    background: linear-gradient(135deg, #ff4b6e, #c91f49);
+    background: linear-gradient(135deg, #ff4b6e, #9b1235);
 }
 
 .system-btn:hover {

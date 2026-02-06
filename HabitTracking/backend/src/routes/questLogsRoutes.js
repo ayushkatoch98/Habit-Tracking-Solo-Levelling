@@ -201,7 +201,7 @@ router.put("/:id", async (req, res, next) => {
                     ql.status as status, ql.id as quest_log_id, ql.complete_by as complete_by, ql.assigned_at as assigned_at
                     FROM quests q
                     JOIN quest_logs ql ON q.id = ql.quest_id
-                    WHERE ql.id = $1 AND ql.user_id = $2 FOR UPDATE`,
+                    WHERE ql.id = $1 AND ql.user_id = $2 AND q.user_id = $2 FOR UPDATE`,
             [questLogId, userId]
         );
 
@@ -255,10 +255,10 @@ router.put("/:id", async (req, res, next) => {
                     [userId, QUEST_TYPE.PENALTY, QUEST_STATUS.PENDING]
                 );
                 if (pendingPenaltyResult.rows.length === 0) {
-                    const penaltyQuestResult = await client.query(
-                        `SELECT id, quest_duration FROM quests WHERE quest_type = $1 ORDER BY RANDOM() LIMIT 1`,
-                        [QUEST_TYPE.PENALTY]
-                    );
+                const penaltyQuestResult = await client.query(
+                    `SELECT id, quest_duration FROM quests WHERE quest_type = $1 AND user_id = $2 ORDER BY RANDOM() LIMIT 1`,
+                    [QUEST_TYPE.PENALTY, userId]
+                );
                     if (penaltyQuestResult.rows.length > 0) {
                         const penaltyQuestId = penaltyQuestResult.rows[0].id;
                         const penaltyQuestDuration = penaltyQuestResult.rows[0].quest_duration;

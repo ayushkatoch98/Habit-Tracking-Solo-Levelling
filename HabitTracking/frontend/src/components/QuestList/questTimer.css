@@ -5,8 +5,8 @@
   padding: 4px 8px;
   border-radius: 8px;
 
-  background: rgba(4, 10, 18, 0.7);
-  border: 1px solid var(--border);
+  background: rgba(2, 6, 12, 0.8);
+  border: 1px solid rgba(77, 224, 255, 0.2);
 
   color: var(--muted);
   white-space: nowrap;
@@ -17,7 +17,7 @@
 /* DANGER MODE */
 .quest-timer.danger {
   color: var(--danger);
-  border-color: rgba(255, 75, 110, 0.6);
+  border-color: rgba(255, 75, 110, 0.7);
   box-shadow: 0 0 10px rgba(255, 75, 110, 0.5);
   animation: pulseDanger 1s infinite;
 }

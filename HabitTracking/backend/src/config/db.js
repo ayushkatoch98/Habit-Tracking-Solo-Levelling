@@ -58,8 +58,12 @@ const createTables = async () => {
             complete_by TIMESTAMPTZ
         );
 
-        CREATE UNIQUE INDEX IF NOT EXISTS one_pending_quest_per_user
-        ON quest_logs (user_id, quest_id)
+        ALTER TABLE quest_logs
+            ADD COLUMN IF NOT EXISTS assigned_date DATE
+            GENERATED ALWAYS AS ((assigned_at AT TIME ZONE 'UTC')::date) STORED;
+
+        CREATE UNIQUE INDEX IF NOT EXISTS one_pending_quest_per_user_day
+        ON quest_logs (user_id, quest_id, assigned_date)
         WHERE status = 'PENDING';
 
     `);

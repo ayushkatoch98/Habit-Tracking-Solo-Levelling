@@ -17,22 +17,106 @@
   --success: #6bffb3;
   --glow: rgba(77, 224, 255, 0.45);
   --shadow: rgba(3, 8, 20, 0.9);
+  --rune: rgba(77, 224, 255, 0.25);
+  --rune-strong: rgba(255, 75, 110, 0.22);
 }
 
 * {
   box-sizing: border-box;
 }
 
+#root {
+  position: relative;
+  z-index: 4;
+}
+
 body {
   color: var(--text);
   min-height: 100vh;
   background:
-    radial-gradient(900px 600px at 20% -10%, rgba(77, 224, 255, 0.15), transparent 60%),
-    radial-gradient(600px 400px at 90% 10%, rgba(255, 75, 110, 0.08), transparent 55%),
-    linear-gradient(160deg, #05070b 0%, #0b111a 50%, #0a1424 100%);
+    radial-gradient(1200px 700px at 10% -10%, rgba(255, 60, 90, 0.08), transparent 60%),
+    radial-gradient(900px 700px at 90% 0%, rgba(70, 190, 255, 0.08), transparent 60%),
+    linear-gradient(170deg, #030508 0%, #0a0f1a 45%, #06080d 100%);
   padding: 20px;
   font-family: "Oxanium", system-ui, -apple-system, "Segoe UI", sans-serif;
   letter-spacing: 0.2px;
+  position: relative;
+  overflow-x: hidden;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background:
+    repeating-linear-gradient(
+      0deg,
+      rgba(255, 255, 255, 0.02),
+      rgba(255, 255, 255, 0.02) 1px,
+      transparent 1px,
+      transparent 3px
+    ),
+    radial-gradient(120px 60px at 20% 20%, rgba(255, 75, 110, 0.12), transparent 70%),
+    radial-gradient(120px 60px at 80% 30%, rgba(77, 224, 255, 0.1), transparent 70%);
+  mix-blend-mode: screen;
+  opacity: 0.5;
+}
+
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(600px 300px at 50% 0%, rgba(0, 0, 0, 0.5), transparent 60%),
+    radial-gradient(600px 300px at 50% 100%, rgba(0, 0, 0, 0.6), transparent 60%);
+  opacity: 0.8;
+}
+
+.solo-overlay {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  background:
+    radial-gradient(200px 120px at 5% 10%, rgba(77, 224, 255, 0.08), transparent 70%),
+    radial-gradient(200px 120px at 95% 20%, rgba(255, 75, 110, 0.06), transparent 70%),
+    radial-gradient(300px 200px at 50% 90%, rgba(0, 0, 0, 0.35), transparent 70%);
+  opacity: 0.9;
+}
+
+.solo-fog {
+  position: fixed;
+  inset: -20%;
+  pointer-events: none;
+  z-index: 2;
+  background:
+    radial-gradient(300px 200px at 20% 40%, rgba(77, 224, 255, 0.06), transparent 70%),
+    radial-gradient(320px 220px at 80% 60%, rgba(255, 75, 110, 0.05), transparent 70%),
+    radial-gradient(420px 260px at 50% 20%, rgba(255, 255, 255, 0.02), transparent 70%);
+  filter: blur(6px);
+  animation: fog-drift 26s linear infinite;
+  opacity: 0.7;
+}
+
+@keyframes fog-drift {
+  0% { transform: translate3d(-2%, 0, 0) scale(1.02); }
+  50% { transform: translate3d(2%, -1%, 0) scale(1.04); }
+  100% { transform: translate3d(-2%, 0, 0) scale(1.02); }
+}
+
+.rune-corners {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 3;
+  opacity: 0.6;
+  background:
+    linear-gradient(135deg, transparent 48%, var(--rune) 49%, var(--rune) 51%, transparent 52%) left 20px top 20px / 22px 22px no-repeat,
+    linear-gradient(225deg, transparent 48%, var(--rune-strong) 49%, var(--rune-strong) 51%, transparent 52%) right 20px top 20px / 22px 22px no-repeat,
+    linear-gradient(315deg, transparent 48%, var(--rune) 49%, var(--rune) 51%, transparent 52%) left 20px bottom 20px / 22px 22px no-repeat,
+    linear-gradient(45deg, transparent 48%, var(--rune-strong) 49%, var(--rune-strong) 51%, transparent 52%) right 20px bottom 20px / 22px 22px no-repeat;
 }
 
 h1, h2, h3, .system-title {

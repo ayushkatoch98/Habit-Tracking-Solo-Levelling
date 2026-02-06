@@ -15,8 +15,16 @@
 
 .admin-table-wrapper {
   width: 100%;
-  overflow-x: auto;      /* 🔥 THIS */
+  overflow-x: auto;      /* ?? THIS */
   overflow-y: hidden;
+  max-width: 100%;
+  display: block;
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+.admin-table-wrapper {
+  min-width: 0;
 }
 
 /* smooth scroll on mobile */
@@ -37,8 +45,14 @@
   border-collapse: collapse;
   font-size: 13px;
   table-layout: fixed;
+  min-width: 100%;
+  width: max-content;
+}
 
-  min-width: 100%; /* 🔥 THIS CREATES OVERFLOW */
+.admin-table th,
+.admin-table td {
+  white-space: nowrap;
+  min-width: 120px;
 }
 
 .admin-table th {
@@ -52,10 +66,7 @@
   padding: 10px;
   border-bottom: 1px solid rgba(78, 130, 160, 0.2);
 }
-.admin-table th,
-.admin-table td {
-  width: 600px;
-}
+
 /* ACTIONS */
 .admin-actions {
   display: flex;
@@ -80,12 +91,6 @@
 .admin-actions .danger {
   border-color: rgba(255, 75, 110, 0.6);
   color: var(--danger);
-}
-
-
-.admin-table th,
-.admin-table td {
-  width: auto;
 }
 
 

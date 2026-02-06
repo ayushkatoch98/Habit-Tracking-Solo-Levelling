@@ -25,25 +25,36 @@ function App() {
   const activeTab =
     bottomNavItems.find(item => item.path === location.pathname)?.key
     || "dashboard";
+  const isAuthPage = location.pathname === "/login";
 
   return (
     <>
-      <Routes>
-        <Route path="/" element={ <ProtectedRoute><Dashboard /></ProtectedRoute> } />
-        <Route path="/otherQuests" element={ <ProtectedRoute><OtherQuests/></ProtectedRoute> } />
-        <Route path="/compare" element={ <ProtectedRoute><Compare /></ProtectedRoute> } />
-        <Route path="/login" element={ <PublicRoute><Login /></PublicRoute> } />
-        <Route path="/admin" element={ <ProtectedRoute><Admin /></ProtectedRoute> } />
-      </Routes>
+      <div className="solo-overlay" />
+      <div className="solo-fog" />
+      <div className="rune-corners" />
 
-      <BottomNav
-        items={bottomNavItems}
-        active={activeTab}
-        onClick={(key) => {
-          const item = bottomNavItems.find(i => i.key === key);
-          if (item) navigate(item.path);
-        }}
-      />
+      <div className="app-shell">
+        <main className="app-main">
+          <Routes>
+            <Route path="/" element={ <ProtectedRoute><Dashboard /></ProtectedRoute> } />
+            <Route path="/otherQuests" element={ <ProtectedRoute><OtherQuests/></ProtectedRoute> } />
+            <Route path="/compare" element={ <ProtectedRoute><Compare /></ProtectedRoute> } />
+            <Route path="/login" element={ <PublicRoute><Login /></PublicRoute> } />
+            <Route path="/admin" element={ <ProtectedRoute><Admin /></ProtectedRoute> } />
+          </Routes>
+        </main>
+
+        {!isAuthPage && (
+          <BottomNav
+            items={bottomNavItems}
+            active={activeTab}
+            onClick={(key) => {
+              const item = bottomNavItems.find(i => i.key === key);
+              if (item) navigate(item.path);
+            }}
+          />
+        )}
+      </div>
     </>
   );
 }

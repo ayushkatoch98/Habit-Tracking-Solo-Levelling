@@ -1,0 +1,77 @@
+.dashboard-page {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 16px;
+}
+
+.dashboard-left,
+.dashboard-right {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.panel-card {
+  padding: 16px;
+}
+
+.panel-title {
+  font-size: 12px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 10px;
+}
+
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.stat-card {
+  padding: 12px;
+  border-radius: 10px;
+  background: rgba(2, 8, 16, 0.6);
+  border: 1px solid rgba(77, 224, 255, 0.18);
+}
+
+.stat-card.danger {
+  border-color: rgba(255, 75, 110, 0.4);
+}
+
+.stat-label {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.stat-value {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text);
+  margin-top: 6px;
+}
+
+.split-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+@media (max-width: 980px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .split-row {
+    grid-template-columns: 1fr;
+  }
+}

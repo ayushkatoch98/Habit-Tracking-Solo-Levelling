@@ -38,7 +38,7 @@ export default function Login() {
 
   return (
     <div className="login-page">
-      <Card>
+      <Card className="hud-frame login-card">
         <Header
           title="SYSTEM AUTHORIZATION"
           subtitle="Identify yourself, Hunter."

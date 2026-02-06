@@ -1,4 +1,3 @@
-import PlanChecklist from "../../components/PlanChecklist/PlanChecklist";
 import { useState, useMemo, useEffect } from "react";
 import QuestList from "../../components/QuestList/QuestList";
 import XPBar from "../../components/XPBar/XPBar";
@@ -6,6 +5,8 @@ import SystemTimer from "../../components/SystemTimer/SystemTimer";
 import instance from "../../../axisInstance";
 import { QUEST_STATUS, QUEST_TYPE } from "../../../../backend/src/constant";
 import ConfirmPopup from "../../components/ConfirmPopup/ConfirmPopup";
+import Card from "../../components/Card/Card";
+import "./Dashboard.css";
 
 export default function Dashboard() {
 
@@ -103,64 +104,106 @@ export default function Dashboard() {
     };
 
     const deadline = new Date();
-    deadline.setSeconds(deadline.getSeconds() + 301);
+    deadline.setHours(23, 59, 59, 999);
 
 
     return (
-        <>
+        <div className="page dashboard-page">
+            <div className="page-header">
+                <div>
+                    <div className="page-kicker">SYSTEM</div>
+                    <h1 className="page-title">HUNTER DASHBOARD</h1>
+                    <p className="page-subtitle">Daily directives, weekly trials, and penalties.</p>
+                </div>
+                <div className="page-meta">
+                    <div className="meta-label">Reset</div>
+                    <SystemTimer deadline={deadline.getTime()} />
+                </div>
+            </div>
 
-            <XPBar level={20} currentXP={600} requiredXP={1000} />
-            <br />
+            <div className="dashboard-grid">
+                <div className="dashboard-left">
+                    <Card className="panel-card">
+                        <div className="panel-title">LEVEL & XP</div>
+                        <XPBar level={20} currentXP={600} requiredXP={1000} />
+                    </Card>
 
- 
+                    <Card className="panel-card">
+                        <div className="panel-title">OVERVIEW</div>
+                        <div className="stat-grid">
+                            <div className="stat-card">
+                                <div className="stat-label">Pending</div>
+                                <div className="stat-value">{pendingQuests.length}</div>
+                            </div>
+                            <div className="stat-card">
+                                <div className="stat-label">Weekly</div>
+                                <div className="stat-value">{weeklyQuests.length}</div>
+                            </div>
+                            <div className="stat-card">
+                                <div className="stat-label">Penalties</div>
+                                <div className="stat-value">{punishmentQuests.length}</div>
+                            </div>
+                            <div className="stat-card danger">
+                                <div className="stat-label">Failed</div>
+                                <div className="stat-value">{failedQuests.length}</div>
+                            </div>
+                        </div>
+                    </Card>
+                </div>
 
-            <QuestList
-                title="Plan"
-                items={pendingQuests}
-                onSelect={(quest) => {
-                    if (quest.status === QUEST_STATUS.PENDING) {
-                        setShowConfirm({ isOpen: true, quest: { ...quest } })
-                    }
-                }}
-            />
+                <div className="dashboard-right">
+                    <Card className="panel-card">
+                        <QuestList
+                            title="Daily Directives"
+                            items={pendingQuests}
+                            onSelect={(quest) => {
+                                if (quest.status === QUEST_STATUS.PENDING) {
+                                    setShowConfirm({ isOpen: true, quest: { ...quest } })
+                                }
+                            }}
+                        />
+                    </Card>
 
-            <br />
+                    <Card className="panel-card">
+                        <QuestList
+                            title="Weekly Trials"
+                            items={weeklyQuests}
+                            onSelect={(quest) => {
+                                if (quest.status === QUEST_STATUS.PENDING && new Date(quest.complete_by) > Date.now()) {
+                                    setShowConfirm({ isOpen: true, quest: { ...quest } })
+                                }
+                            }}
+                        />
+                    </Card>
 
-            <QuestList
-                title="Weekly Quests"
-                items={weeklyQuests}
-                onSelect={(quest) => {
-                    if (quest.status === QUEST_STATUS.PENDING && new Date(quest.complete_by) > Date.now()) {
-                        setShowConfirm({ isOpen: true, quest: { ...quest } })
-                    }
-                }}
-            />
+                    <Card className="panel-card">
+                        <QuestList
+                            title="Penalties"
+                            items={punishmentQuests}
+                            onSelect={(quest) => {
+                                if (quest.status === QUEST_STATUS.PENDING && new Date(quest.complete_by) > Date.now()) setShowConfirm({ isOpen: true, quest: {...quest} })
+                            }}
+                        />
+                    </Card>
 
-            <br />
-            
-            <QuestList
-                title="Punishments"
-                items={punishmentQuests}
-                onSelect={(quest) => {
-                    if (quest.status === QUEST_STATUS.PENDING && new Date(quest.complete_by) > Date.now()) setShowConfirm({ isOpen: true, quest: {...quest} })
-                }}
-            />
-
-            <br />
-
-            <QuestList
-                title="Completed"
-                items={completedQuests}
-                onSelect={() => {}}
-            />
-
-            <br />
-
-            <QuestList
-                title="Failed"
-                items={failedQuests}
-                onSelect={() => {}}
-            />
+                    <div className="split-row">
+                        <Card className="panel-card">
+                            <QuestList
+                                title="Completed"
+                                items={completedQuests}
+                                onSelect={() => {}}
+                            />
+                        </Card>
+                        <Card className="panel-card">
+                            <QuestList
+                                title="Failed"
+                                items={failedQuests}
+                                onSelect={() => {}}
+                            />
+                        </Card>
+                    </div>
+                </div>
+            </div>
 
             <ConfirmPopup
                 open={showConfirm.isOpen}
@@ -174,9 +217,7 @@ export default function Dashboard() {
                 onConfirm={() => onQuestClick(showConfirm.quest, QUEST_STATUS.COMPLETED)}
                 onCancel={() => setShowConfirm({ isOpen: false, quest: {} })}
             />
-            <br />
-            <br />
-        </>
+        </div>
     )
 
 }

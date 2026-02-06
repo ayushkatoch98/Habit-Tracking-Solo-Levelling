@@ -177,16 +177,20 @@ export default function Compare() {
     }));
 
     return (
-        <div className="max-w-5xl mx-auto compare-page">
-
-            {/* Header */}
-            <h1 className="text-2xl font-bold text-center">
-                Discipline Comparison
-            </h1>
+        <div className="page compare-page">
+            <div className="page-header">
+                <div>
+                    <div className="page-kicker">DUEL</div>
+                    <h1 className="page-title">DISCIPLINE COMPARISON</h1>
+                    <p className="page-subtitle">Measure dominance, failure rate, and XP flow.</p>
+                </div>
+                <div className="page-meta">
+                    <div className="meta-label">Range</div>
+                    <DateRangePicker value={range} onChange={setRange} />
+                </div>
+            </div>
 
             <Card className="compare-controls">
-                <DateRangePicker value={range} onChange={setRange} />
-
                 <div className="quick-ranges">
                     <RangeButton days={1} label="1D" setRange={setRange} />
                     <RangeButton days={2} label="2D" setRange={setRange} />
@@ -200,14 +204,11 @@ export default function Compare() {
                 </div>
             </Card>
 
-            {
-                compareData.users.length === 0 && (
-                    <div className="text-center text-gray-400">
-                        No data available for the selected date range.
-                    </div>
-                )
-            }
-
+            {compareData.users.length === 0 && (
+                <div className="empty-state">
+                    No data available for the selected date range.
+                </div>
+            )}
 
             <Card className="compare-summary">
                 <div className="compare-summary-grid">
@@ -275,7 +276,9 @@ export default function Compare() {
                 </div>
             </Card>
 
-            <ComparisonTable users={compareData.users} />
+            <Card className="compare-table-card">
+                <ComparisonTable users={compareData.users} />
+            </Card>
 
         </div>
     );
