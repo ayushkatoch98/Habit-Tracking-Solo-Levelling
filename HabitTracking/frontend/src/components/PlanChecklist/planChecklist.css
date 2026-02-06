@@ -6,7 +6,7 @@
   font-size: 14px;
   letter-spacing: 1.5px;
   margin-bottom: 10px;
-  color: #b9a7d9;
+  color: var(--muted);
 }
 
 /* ITEM */
@@ -30,13 +30,13 @@
 
 /* CHECKBOX */
 .checklist-item input {
-  accent-color: #a678ff;
+  accent-color: var(--accent);
 }
 
 /* DIVIDER */
 .checklist-divider {
   height: 1px;
-  background: rgba(170,120,255,0.25);
+  background: rgba(77, 224, 255, 0.15);
   margin: 12px 0;
 }
 

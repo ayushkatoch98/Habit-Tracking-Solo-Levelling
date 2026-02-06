@@ -8,6 +8,10 @@ export default function ConfirmPopup({
   message,
   confirmText = "Confirm",
   onConfirm,
+  secondaryText,
+  onSecondary,
+  secondaryDanger = true,
+  cancelText = "Cancel",
   onCancel,
   danger = true,
 }) {
@@ -27,9 +31,23 @@ export default function ConfirmPopup({
         <p>{message}</p>
 
         <div className="confirm-popup-actions">
-  
+          {onCancel && (
+            <Button variant="ghost" size="sm" onClick={onCancel}>
+              {cancelText}
+            </Button>
+          )}
+          {onSecondary && secondaryText && (
+            <Button
+              variant={secondaryDanger ? "danger" : "primary"}
+              size="sm"
+              onClick={onSecondary}
+            >
+              {secondaryText}
+            </Button>
+          )}
           <Button
-            className={danger ? "danger" : ""}
+            variant={danger ? "danger" : "primary"}
+            size="sm"
             onClick={handleConfirm}
           >
             {confirmText}

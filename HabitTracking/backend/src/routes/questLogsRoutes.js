@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const pool = require("../config/db");
 const authMiddleware = require("../middlewares/authMiddleware");
-const { applyXpDelta, QUEST_STATUS } = require("../constant");
+const { applyXpDelta, QUEST_STATUS, QUEST_TYPE } = require("../constant");
 
 router.use(authMiddleware);
 
@@ -71,6 +71,11 @@ router.get("/compare", async (req, res, next) => {
                 COUNT(*) FILTER (WHERE quest_type = 'DAILY_QUEST' AND status = 'FAILED') AS daily_failed,
                 COUNT(*) FILTER (WHERE quest_type = 'DAILY_QUEST' AND status = 'PENDING') AS daily_pending,
 
+                COUNT(*) FILTER (WHERE quest_type = 'WEEKLY_QUEST') AS weekly_total,
+                COUNT(*) FILTER (WHERE quest_type = 'WEEKLY_QUEST' AND status = 'COMPLETED') AS weekly_completed,
+                COUNT(*) FILTER (WHERE quest_type = 'WEEKLY_QUEST' AND status = 'FAILED') AS weekly_failed,
+                COUNT(*) FILTER (WHERE quest_type = 'WEEKLY_QUEST' AND status = 'PENDING') AS weekly_pending,
+
                 COUNT(*) FILTER (WHERE quest_type = 'PENALTY') AS penalty_assigned,
                 COUNT(*) FILTER (WHERE quest_type = 'PENALTY' AND status = 'COMPLETED') AS penalty_completed,
                 COUNT(*) FILTER (WHERE quest_type = 'PENALTY' AND status = 'FAILED') AS penalty_failed,
@@ -97,6 +102,10 @@ router.get("/compare", async (req, res, next) => {
                     daily_completed: Number(u.daily_completed),
                     daily_failed: Number(u.daily_failed),
                     daily_pending: Number(u.daily_pending),
+
+                    weekly_completed: Number(u.weekly_completed),
+                    weekly_failed: Number(u.weekly_failed),
+                    weekly_pending: Number(u.weekly_pending),
 
                     penalty_assigned: Number(u.penalty_assigned),
                     penalty_completed: Number(u.penalty_completed),
@@ -177,8 +186,8 @@ router.put("/:id", async (req, res, next) => {
     const questLogId = req.params.id;
     const { status } = req.body;
 
-    if (status !== QUEST_STATUS.COMPLETED) {
-        return res.status(400).json({ message: "Quest can only be marked as completed" });
+    if (![QUEST_STATUS.COMPLETED, QUEST_STATUS.FAILED].includes(status)) {
+        return res.status(400).json({ message: "Quest can only be marked as completed or failed" });
     }
 
     const client = await pool.connect();
@@ -188,7 +197,8 @@ router.put("/:id", async (req, res, next) => {
         await client.query("BEGIN");
         // Get the quest log to ensure it belongs to the user
         const questLogResult = await client.query(
-            `SELECT q.id as quest_id, q.quest_xp as quest_xp, ql.status as status, ql.id as quest_log_id, ql.complete_by as complete_by, ql.assigned_at as assigned_at
+            `SELECT q.id as quest_id, q.quest_xp as quest_xp, q.failed_xp as failed_xp, q.quest_type as quest_type,
+                    ql.status as status, ql.id as quest_log_id, ql.complete_by as complete_by, ql.assigned_at as assigned_at
                     FROM quests q
                     JOIN quest_logs ql ON q.id = ql.quest_id
                     WHERE ql.id = $1 AND ql.user_id = $2 FOR UPDATE`,
@@ -207,11 +217,17 @@ router.put("/:id", async (req, res, next) => {
             await client.query("ROLLBACK");
             return res.status(400).json({ message: "Quest log is already completed" });
         }
-
-        console.log("complete by", questLogResult.rows[0].complete_by, "new Date()", new Date());
-        if (new Date() > new Date(questLogResult.rows[0].complete_by)) {
+        if (questLogResult.rows[0].status === QUEST_STATUS.FAILED) {
             await client.query("ROLLBACK");
-            return res.status(400).json({ message: "Cannot complete quest log after its completion deadline" });
+            return res.status(400).json({ message: "Quest log is already failed" });
+        }
+
+        if (status === QUEST_STATUS.COMPLETED) {
+            console.log("complete by", questLogResult.rows[0].complete_by, "new Date()", new Date());
+            if (new Date() > new Date(questLogResult.rows[0].complete_by)) {
+                await client.query("ROLLBACK");
+                return res.status(400).json({ message: "Cannot complete quest log after its completion deadline" });
+            }
         }
 
         const updateResult = await client.query(
@@ -219,9 +235,42 @@ router.put("/:id", async (req, res, next) => {
             [status, questLogId, userId]
         );
         updatedQuestLog = updateResult.rows[0];
-        // Add XP to user
         const questXp = questLogResult.rows[0].quest_xp;
-        await applyXpDelta(userId, userEmail, questXp, client);
+        const failedXp = questLogResult.rows[0].failed_xp;
+        const questType = questLogResult.rows[0].quest_type;
+
+        if (status === QUEST_STATUS.COMPLETED) {
+            await applyXpDelta(userId, userEmail, questXp, client);
+        } else if (status === QUEST_STATUS.FAILED) {
+            if (failedXp > 0) {
+                await applyXpDelta(userId, userEmail, -failedXp, client);
+            }
+            if (questType !== QUEST_TYPE.PENALTY) {
+                const pendingPenaltyResult = await client.query(
+                    `SELECT 1
+                     FROM quest_logs ql
+                     JOIN quests q ON ql.quest_id = q.id
+                     WHERE ql.user_id = $1 AND q.quest_type = $2 AND ql.status = $3
+                     LIMIT 1`,
+                    [userId, QUEST_TYPE.PENALTY, QUEST_STATUS.PENDING]
+                );
+                if (pendingPenaltyResult.rows.length === 0) {
+                    const penaltyQuestResult = await client.query(
+                        `SELECT id, quest_duration FROM quests WHERE quest_type = $1 ORDER BY RANDOM() LIMIT 1`,
+                        [QUEST_TYPE.PENALTY]
+                    );
+                    if (penaltyQuestResult.rows.length > 0) {
+                        const penaltyQuestId = penaltyQuestResult.rows[0].id;
+                        const penaltyQuestDuration = penaltyQuestResult.rows[0].quest_duration;
+                        await client.query(
+                            `INSERT INTO quest_logs (user_id, quest_id, status, assigned_at, complete_by) 
+                             VALUES ($1, $2, $3, NOW(), NOW() + ($4 || ' minutes')::interval)`,
+                            [userId, penaltyQuestId, QUEST_STATUS.PENDING, penaltyQuestDuration]
+                        );
+                    }
+                }
+            }
+        }
 
 
         await client.query("COMMIT");

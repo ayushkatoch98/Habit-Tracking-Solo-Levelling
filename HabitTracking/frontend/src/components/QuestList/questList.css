@@ -2,14 +2,15 @@
   font-size: 14px;
   letter-spacing: 1.5px;
   margin-bottom: 10px;
-  color: #b9a7d9;
+  color: var(--muted);
+  text-transform: uppercase;
 }
 .quest-assigned {
   margin-top: 4px;
   font-size: 10px;
   letter-spacing: 1px;
   opacity: 0.55;
-  color: #b9a7d9;
+  color: var(--muted);
 }
 .quest-right {
   display: flex;
@@ -27,17 +28,17 @@
   border-radius: 10px;
   background: linear-gradient(
     180deg,
-    rgba(30, 15, 55, 0.9),
-    rgba(20, 10, 40, 0.9)
+    rgba(12, 20, 34, 0.95),
+    rgba(9, 14, 26, 0.95)
   );
-  border: 1px solid rgba(170,120,255,0.25);
+  border: 1px solid var(--border);
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 /* hover */
 .quest-item:hover {
-  box-shadow: 0 0 12px rgba(150,80,255,0.6);
+  box-shadow: 0 0 14px rgba(77, 224, 255, 0.35);
   transform: translateY(-1px);
 }
 
@@ -54,6 +55,7 @@
 .quest-subtitle {
   font-size: 11px;
   opacity: 0.65;
+  color: var(--muted);
 }
 
 /* RIGHT PROGRESS */
@@ -61,8 +63,8 @@
   width: 18px;
   height: 18px;
   border-radius: 4px;
-  border: 1px solid rgba(170,120,255,0.6);
-  background: rgba(0,0,0,0.45);
+  border: 1px solid var(--border-strong);
+  background: rgba(2, 6, 14, 0.6);
   position: relative;
   flex-shrink: 0;
 }
@@ -71,14 +73,14 @@
 .quest-checkbox .checkmark {
   position: absolute;
   inset: 4px;
-  border-right: 2px solid #e5d9ff;
-  border-bottom: 2px solid #e5d9ff;
+  border-right: 2px solid var(--text);
+  border-bottom: 2px solid var(--text);
   transform: rotate(45deg);
 }
 
 /* COMPLETED STATE ENHANCEMENT */
 .quest-item.completed .quest-checkbox {
-  box-shadow: 0 0 8px rgba(150,80,255,0.7);
+  box-shadow: 0 0 8px rgba(77, 224, 255, 0.45);
 }
 /* COMPLETED */
 .quest-item.completed {
@@ -93,7 +95,7 @@
 /* DIVIDER */
 .quest-divider {
   height: 1px;
-  background: rgba(170,120,255,0.25);
+  background: rgba(77, 224, 255, 0.15);
   margin: 14px 0;
 }
 

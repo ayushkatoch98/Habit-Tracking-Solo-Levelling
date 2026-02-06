@@ -9,6 +9,7 @@
   font-size: 12px;
   letter-spacing: 2px;
   opacity: 0.7;
+  color: var(--muted);
 }
 
 /* ROW */
@@ -23,15 +24,16 @@
 .duel-name {
   font-size: 12px;
   opacity: 0.7;
+  color: var(--muted);
 }
 
 /* METER */
 .duel-meter {
   height: 10px;
-  background: rgba(0,0,0,0.45);
+  background: rgba(2, 8, 16, 0.6);
   border-radius: 8px;
   overflow: hidden;
-  border: 1px solid rgba(170,120,255,0.3);
+  border: 1px solid var(--border);
 }
 
 /* FILL */
@@ -42,13 +44,13 @@
 
 /* WINNER */
 .duel-fill.winner {
-  background: linear-gradient(90deg, #a678ff, #6d3bff);
-  box-shadow: 0 0 12px rgba(150,80,255,0.8);
+  background: linear-gradient(90deg, #4de0ff, #2b7bff);
+  box-shadow: 0 0 12px rgba(77, 224, 255, 0.6);
 }
 
 /* LOSER */
 .duel-fill.loser {
-  background: rgba(150,80,255,0.65);
+  background: rgba(77, 224, 255, 0.35);
 }
 
 /* VALUES */
@@ -63,6 +65,6 @@
 
 /* DANGER MODE */
 .duel-bar.danger .duel-fill.winner {
-  background: linear-gradient(90deg, #ff5c7a, #c73855);
-  box-shadow: 0 0 12px rgba(255,92,122,0.8);
+  background: linear-gradient(90deg, #ff4b6e, #c91f49);
+  box-shadow: 0 0 12px rgba(255, 75, 110, 0.8);
 }

@@ -1,7 +1,13 @@
 .system-card {
-  background: rgba(20,10,40,0.85);
-  border: 1px solid rgba(170,120,255,0.3);
+  background: var(--panel);
+  border: 1px solid var(--border);
   border-radius: 14px;
   padding: 16px;
-  box-shadow: 0 0 30px rgba(150,80,255,0.2);
+  box-shadow: 0 0 30px rgba(4, 10, 24, 0.45);
+  animation: panel-rise 0.5s ease both;
+}
+
+@keyframes panel-rise {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
 }

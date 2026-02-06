@@ -43,6 +43,29 @@ async function assignNewQuestToUser(userId, userEmail, quest_type, client) {
     }
 }
 
+async function shouldAssignWeeklyQuest(userId, client) {
+    const result = await client.query(
+        `SELECT ql.assigned_at
+         FROM quest_logs ql
+         JOIN quests q ON ql.quest_id = q.id
+         WHERE ql.user_id = $1 AND q.quest_type = $2
+         ORDER BY ql.assigned_at DESC
+         LIMIT 1`,
+        [userId, QUEST_TYPE.WEEKLY_QUEST]
+    );
+
+    if (result.rows.length === 0) {
+        return true;
+    }
+
+    const lastAssignedAt = new Date(result.rows[0].assigned_at);
+    const now = new Date();
+    const diffMs = now - lastAssignedAt;
+    const sevenDaysMs = 7 * 24 * 60 * 60 * 1000;
+
+    return diffMs >= sevenDaysMs;
+}
+
 async function assignPenaltyQuestToUser(userId, userEmail, client) {
     console.log("Assigning penalty quest to user", userEmail);
     const penaltyQuestResult = await client.query(
@@ -131,10 +154,11 @@ router.get("/run", async (req, res) => {
                 // Check if the user has a pending daily quest from the previous day
                 const { assignPenalty, totalFailedXp } = await markPendingQuestAsFailed(userId, userEmail, QUEST_TYPE.DAILY_QUEST, client);
                 const { assignPenalty: assignPenalty2, totalFailedXp: totalFailedXp2 } = await markPendingQuestAsFailed(userId, userEmail, QUEST_TYPE.PENALTY, client);
+                const { assignPenalty: assignPenalty3, totalFailedXp: totalFailedXp3 } = await markPendingQuestAsFailed(userId, userEmail, QUEST_TYPE.WEEKLY_QUEST, client);
                 // assign penalty quest if they failed to complete previous day's daily quest
-                if (assignPenalty || assignPenalty2) {
+                if (assignPenalty || assignPenalty2 || assignPenalty3) {
                     // Subtract failed XP
-                    const finalTotalFailedXp = totalFailedXp + totalFailedXp2;
+                    const finalTotalFailedXp = totalFailedXp + totalFailedXp2 + totalFailedXp3;
                     if (finalTotalFailedXp > 0) {
                         await applyXpDelta(userId, userEmail, -finalTotalFailedXp, client);
                     }
@@ -142,6 +166,10 @@ router.get("/run", async (req, res) => {
                 }
                 // Assign new daily quest
                 await assignNewQuestToUser(userId, userEmail, QUEST_TYPE.DAILY_QUEST, client);
+                // Assign weekly quest only if due (every 7 days)
+                if (await shouldAssignWeeklyQuest(userId, client)) {
+                    await assignNewQuestToUser(userId, userEmail, QUEST_TYPE.WEEKLY_QUEST, client);
+                }
 
             }
         } finally {

@@ -8,6 +8,10 @@ export default function ComparisonTable({ users }) {
         { label: "Daily Failed", key: "daily_failed", better: "low", danger: true },
         { label: "Daily Pending", key: "daily_pending", better: "low" },
 
+        { label: "Weekly Completed", key: "weekly_completed", better: "high" },
+        { label: "Weekly Failed", key: "weekly_failed", better: "low", danger: true },
+        { label: "Weekly Pending", key: "weekly_pending", better: "low" },
+
         { label: "Penalty Assigned", key: "penalty_assigned", better: "low" },
         { label: "Penalty Completed", key: "penalty_completed", better: "high" },
         { label: "Penalty Failed", key: "penalty_failed", better: "low", danger: true },

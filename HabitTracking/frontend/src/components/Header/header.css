@@ -6,11 +6,12 @@
 .system-header h2 {
   letter-spacing: 2px;
   font-size: 18px;
-  color: #e5d9ff;
+  color: var(--text);
 }
 
 .system-header p {
   font-size: 13px;
   opacity: 0.7;
   margin-top: 4px;
+  color: var(--muted);
 }

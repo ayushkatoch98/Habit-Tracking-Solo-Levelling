@@ -5,7 +5,7 @@
     font-weight: 600;
     border: none;
     cursor: pointer;
-    color: white;
+    color: var(--text);
     transition: all 0.2s ease;  
     display: inline-flex;
     align-items: center;
@@ -13,17 +13,17 @@
 
 }
 .system-btn.primary {
-    background: linear-gradient(135deg, #a678ff, #6d3bff);
+    background: linear-gradient(135deg, #4de0ff, #2b7bff);
     display: inline;
     align-items: center;
 }
 
 .system-btn.danger {
-    background: linear-gradient(135deg, #ff5c7a, #ff2f5e);
+    background: linear-gradient(135deg, #ff4b6e, #c91f49);
 }
 
 .system-btn:hover {
-    box-shadow: 0 0 15px rgba(150, 80, 255, 0.8);
+    box-shadow: 0 0 15px rgba(77, 224, 255, 0.55);
     transform: translateY(-1px);
 }
 
@@ -36,11 +36,11 @@
 
 /* ghost / utility button */
 .system-btn.ghost {
-    background: rgba(0, 0, 0, 0.35);
-    border: 1px solid rgba(170, 120, 255, 0.35);
+    background: rgba(2, 8, 16, 0.55);
+    border: 1px solid var(--border);
 }
 
 .system-btn.ghost:hover {
-    box-shadow: 0 0 8px rgba(150, 80, 255, 0.6);
+    box-shadow: 0 0 8px rgba(77, 224, 255, 0.4);
 }
 

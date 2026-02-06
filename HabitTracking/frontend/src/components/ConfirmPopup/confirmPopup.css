@@ -8,6 +8,7 @@
 
 .confirm-popup-content p {
   line-height: 1.5;
+  color: var(--text);
 }
 
 /* ACTIONS */
@@ -19,11 +20,11 @@
 
 /* DANGER BUTTON OVERRIDE */
 button.danger {
-  background: rgba(255, 92, 122, 0.2);
-  border: 1px solid rgba(255, 92, 122, 0.6);
-  color: #ff5c7a;
+  background: rgba(255, 75, 110, 0.2);
+  border: 1px solid rgba(255, 75, 110, 0.6);
+  color: #fff;
 }
 
 button.danger:hover {
-  box-shadow: 0 0 12px rgba(255, 92, 122, 0.8);
+  box-shadow: 0 0 12px rgba(255, 75, 110, 0.8);
 }

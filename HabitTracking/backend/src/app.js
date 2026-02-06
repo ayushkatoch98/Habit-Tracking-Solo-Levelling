@@ -7,6 +7,7 @@ const authRoutes = require("./routes/authRoutes");
 const questRoutes = require("./routes/questRoutes");
 const questLogsRoutes = require("./routes/questLogsRoutes");
 const cronjobRoutes = require("./routes/cronjobRoutes");
+const adminRoutes = require("./routes/adminRoutes");
 // Middlewares
 const errorHandler = require("./middlewares/errorHandler");
 
@@ -32,6 +33,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/quests", questRoutes);
 app.use("/api/quest-logs", questLogsRoutes);
 app.use("/api/cronjobs", cronjobRoutes);
+app.use("/api/admin", adminRoutes);
 
 // Swagger Documentation
 app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec, {

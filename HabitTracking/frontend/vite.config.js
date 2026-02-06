@@ -12,4 +12,8 @@ export default defineConfig({
       },
     }),
   ],
+  optimizeDeps: {
+    include: ["recharts", "d3-color", "d3-interpolate"],
+    exclude: ["victory-vendor"]
+  }
 })

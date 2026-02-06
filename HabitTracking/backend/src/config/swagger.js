@@ -84,7 +84,7 @@ const options = {
             },
             quest_type: {
               type: "string",
-              enum: ["daily_quest", "penalty"],
+              enum: ["daily_quest", "weekly_quest", "penalty"],
               description: "Type of quest",
               example: "daily_quest",
             },
@@ -187,7 +187,7 @@ const options = {
             },
             quest_type: {
               type: "string",
-              enum: ["daily_quest", "penalty"],
+              enum: ["daily_quest", "weekly_quest", "penalty"],
               description: "Type of quest",
               example: "daily_quest",
             },
@@ -232,7 +232,7 @@ const options = {
             },
             quest_type: {
               type: "string",
-              enum: ["daily_quest", "penalty"],
+              enum: ["daily_quest", "weekly_quest", "penalty"],
               description: "Type of quest",
               example: "daily_quest",
             },

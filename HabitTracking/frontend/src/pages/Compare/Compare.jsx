@@ -2,10 +2,21 @@
 import { useEffect, useState } from "react";
 import DateRangePicker from "../../components/DateRangePicker/DateRangePicker";
 import ComparisonTable from "../../components/ComparisonTable/ComparisonTable";
-import ComparisonBar from "../../components/ComparisonBar/ComparisonBar";
 import Card from "../../components/Card/Card";
 import "./compare.css";
 import instance from "../../../axisInstance";
+import {
+    ResponsiveContainer,
+    BarChart,
+    Bar,
+    XAxis,
+    YAxis,
+    Tooltip,
+    Legend,
+    CartesianGrid,
+    LineChart,
+    Line
+} from "recharts";
 
 export default function Compare() {
 
@@ -21,6 +32,9 @@ export default function Compare() {
                     "daily_completed": 0,
                     "daily_failed": 0,
                     "daily_pending": 0,
+                    "weekly_completed": 0,
+                    "weekly_failed": 0,
+                    "weekly_pending": 0,
                     "penalty_assigned": 0,
                     "penalty_completed": 0,
                     "penalty_failed": 0,
@@ -36,6 +50,9 @@ export default function Compare() {
                     "daily_completed": 0,
                     "daily_failed": 0,
                     "daily_pending": 0,
+                    "weekly_completed": 0,
+                    "weekly_failed": 0,
+                    "weekly_pending": 0,
                     "penalty_assigned": 0,
                     "penalty_completed": 0,
                     "penalty_failed": 0,
@@ -115,7 +132,49 @@ export default function Compare() {
         });
     }, [range])
 
+    const statRows = compareData.users.map(u => {
+        const s = u.stats;
+        const dailyTotal = s.daily_completed + s.daily_failed + s.daily_pending;
+        const weeklyTotal = s.weekly_completed + s.weekly_failed + s.weekly_pending;
+        const completionRate = dailyTotal > 0 ? Math.round((s.daily_completed / dailyTotal) * 100) : 0;
+        const weeklyCompletionRate = weeklyTotal > 0 ? Math.round((s.weekly_completed / weeklyTotal) * 100) : 0;
+        const penaltyTotal = s.penalty_assigned;
+        const disciplineScore = Math.round(
+            (s.xp_gained - s.xp_lost) + (completionRate * 2) - (s.daily_failed * 3)
+        );
 
+        return {
+            name: u.username,
+            daily_completed: s.daily_completed,
+            daily_failed: s.daily_failed,
+            daily_pending: s.daily_pending,
+            weekly_completed: s.weekly_completed,
+            weekly_failed: s.weekly_failed,
+            weekly_pending: s.weekly_pending,
+            xp_gained: s.xp_gained,
+            xp_lost: s.xp_lost,
+            net_xp: s.net_xp,
+            failure_rate: s.failure_rate,
+            completion_rate: completionRate,
+            weekly_completion_rate: weeklyCompletionRate,
+            penalty_assigned: penaltyTotal,
+            discipline_score: disciplineScore
+        };
+    });
+
+    const chartBars = statRows.map(r => ({
+        name: r.name.toUpperCase(),
+        Daily: r.daily_completed,
+        Weekly: r.weekly_completed,
+        Penalty: r.penalty_assigned
+    }));
+
+    const chartXP = statRows.map(r => ({
+        name: r.name.toUpperCase(),
+        Gained: r.xp_gained,
+        Lost: r.xp_lost,
+        Net: r.net_xp
+    }));
 
     return (
         <div className="max-w-5xl mx-auto compare-page">
@@ -149,6 +208,72 @@ export default function Compare() {
                 )
             }
 
+
+            <Card className="compare-summary">
+                <div className="compare-summary-grid">
+                    {statRows.map((row) => (
+                        <div key={row.name} className="summary-card">
+                            <div className="summary-title">{row.name.toUpperCase()}</div>
+                            <div className="summary-row">
+                                <span>Completion Rate</span>
+                                <span>{row.completion_rate}%</span>
+                            </div>
+                            <div className="summary-row">
+                                <span>Weekly Completion</span>
+                                <span>{row.weekly_completion_rate}%</span>
+                            </div>
+                            <div className="summary-row">
+                                <span>Failure Rate</span>
+                                <span>{row.failure_rate}%</span>
+                            </div>
+                            <div className="summary-row">
+                                <span>Net XP</span>
+                                <span>{row.net_xp}</span>
+                            </div>
+                            <div className="summary-row">
+                                <span>Discipline Score</span>
+                                <span>{row.discipline_score}</span>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </Card>
+
+            <Card className="compare-charts">
+                <h3 className="compare-section-title">QUEST OUTPUT</h3>
+                <div className="chart-block">
+                    <ResponsiveContainer width="100%" height={260}>
+                        <BarChart data={chartBars}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="rgba(110,170,200,0.2)" />
+                            <XAxis dataKey="name" />
+                            <YAxis />
+                            <Tooltip />
+                            <Legend />
+                            <Bar dataKey="Daily" fill="#4de0ff" radius={[6, 6, 0, 0]} />
+                            <Bar dataKey="Weekly" fill="#2b7bff" radius={[6, 6, 0, 0]} />
+                            <Bar dataKey="Penalty" fill="#ff4b6e" radius={[6, 6, 0, 0]} />
+                        </BarChart>
+                    </ResponsiveContainer>
+                </div>
+            </Card>
+
+            <Card className="compare-charts">
+                <h3 className="compare-section-title">XP FLOW</h3>
+                <div className="chart-block">
+                    <ResponsiveContainer width="100%" height={260}>
+                        <LineChart data={chartXP}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="rgba(110,170,200,0.2)" />
+                            <XAxis dataKey="name" />
+                            <YAxis />
+                            <Tooltip />
+                            <Legend />
+                            <Line type="monotone" dataKey="Gained" stroke="#4de0ff" strokeWidth={2} dot={false} />
+                            <Line type="monotone" dataKey="Lost" stroke="#ff4b6e" strokeWidth={2} dot={false} />
+                            <Line type="monotone" dataKey="Net" stroke="#6bffb3" strokeWidth={2} dot={false} />
+                        </LineChart>
+                    </ResponsiveContainer>
+                </div>
+            </Card>
 
             <ComparisonTable users={compareData.users} />
 

@@ -17,16 +17,30 @@ export default function Dashboard() {
     });
 
 
-    const { completedQuests, pendingQuests, punishmentQuests } = useMemo(() => {
+    const { completedQuests, pendingQuests, punishmentQuests, weeklyQuests, failedQuests } = useMemo(() => {
         const result = {
             completedQuests: [],
             pendingQuests: [],
             punishmentQuests: [],
+            weeklyQuests: [],
+            failedQuests: [],
         };
 
         quests.forEach((quest) => {
             if (quest.quest_type === QUEST_TYPE.PENALTY) {
-                result.punishmentQuests.push(quest);
+                if (quest.status === QUEST_STATUS.FAILED) {
+                    result.failedQuests.push(quest);
+                } else {
+                    result.punishmentQuests.push(quest);
+                }
+            } else if (quest.quest_type === QUEST_TYPE.WEEKLY_QUEST) {
+                if (quest.status === QUEST_STATUS.FAILED) {
+                    result.failedQuests.push(quest);
+                } else {
+                    result.weeklyQuests.push(quest);
+                }
+            } else if (quest.status == QUEST_STATUS.FAILED) {
+                result.failedQuests.push(quest);
             } else if (quest.status == QUEST_STATUS.COMPLETED) {
                 result.completedQuests.push(quest);
             } else {
@@ -52,14 +66,11 @@ export default function Dashboard() {
     }, [])
 
 
-    const onQuestClick = async (quest) => {
+    const onQuestClick = async (quest, newStatus) => {
 
-        if (quest.status === QUEST_STATUS.COMPLETED) {
+        if (quest.status === QUEST_STATUS.COMPLETED || quest.status === QUEST_STATUS.FAILED) {
             return;
         }
-
-       
-        const newStatus = QUEST_STATUS.COMPLETED
 
         // 1️⃣ Optimistic UI update
         setQuests(prev =>
@@ -72,9 +83,7 @@ export default function Dashboard() {
 
         // 2️⃣ API call
         try {
-            await instance.put(`quest-logs/${quest.id}`, {
-                status: newStatus,
-            });
+            await instance.put(`quest-logs/${quest.id}`, { status: newStatus });
             setShowConfirm({ isOpen: false, quest: {} })
         } catch (err) {
             console.error("Error", err);
@@ -108,7 +117,23 @@ export default function Dashboard() {
             <QuestList
                 title="Plan"
                 items={pendingQuests}
-                onSelect={(quest) => setShowConfirm({ isOpen: true, quest: {...quest} })}
+                onSelect={(quest) => {
+                    if (quest.status === QUEST_STATUS.PENDING) {
+                        setShowConfirm({ isOpen: true, quest: { ...quest } })
+                    }
+                }}
+            />
+
+            <br />
+
+            <QuestList
+                title="Weekly Quests"
+                items={weeklyQuests}
+                onSelect={(quest) => {
+                    if (quest.status === QUEST_STATUS.PENDING && new Date(quest.complete_by) > Date.now()) {
+                        setShowConfirm({ isOpen: true, quest: { ...quest } })
+                    }
+                }}
             />
 
             <br />
@@ -129,13 +154,24 @@ export default function Dashboard() {
                 onSelect={() => {}}
             />
 
+            <br />
+
+            <QuestList
+                title="Failed"
+                items={failedQuests}
+                onSelect={() => {}}
+            />
+
             <ConfirmPopup
                 open={showConfirm.isOpen}
-                title="MARK QUEST AS COMPLETED?"
-                message="This action cannot be undone."
-                confirmText="Confirm"
-                dangerous={true}
-                onConfirm={() => onQuestClick(showConfirm.quest)}
+                title="UPDATE QUEST STATUS"
+                message="Choose to complete or fail this quest. This action cannot be undone."
+                confirmText="Mark Completed"
+                dangerous={false}
+                secondaryText="Mark Failed"
+                secondaryDanger={true}
+                onSecondary={() => onQuestClick(showConfirm.quest, QUEST_STATUS.FAILED)}
+                onConfirm={() => onQuestClick(showConfirm.quest, QUEST_STATUS.COMPLETED)}
                 onCancel={() => setShowConfirm({ isOpen: false, quest: {} })}
             />
             <br />
