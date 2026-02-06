@@ -25,6 +25,8 @@
   align-items: flex-end;
   justify-content: space-between;
   gap: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(77, 224, 255, 0.12);
 }
 
 .page-kicker {
@@ -79,6 +81,40 @@
   border: 1px dashed rgba(255, 75, 110, 0.14);
   border-radius: 14px;
   pointer-events: none;
+}
+
+.global-loader {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  background: rgba(3, 6, 12, 0.55);
+  backdrop-filter: blur(2px);
+}
+
+.loader-ring {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.15);
+  border-top-color: rgba(120, 90, 255, 0.9);
+  border-right-color: rgba(140, 180, 255, 0.9);
+  animation: spin 0.9s linear infinite;
+  box-shadow: 0 0 12px rgba(140, 180, 255, 0.5);
+}
+
+.loader-text {
+  font-size: 11px;
+  letter-spacing: 2px;
+  color: var(--text);
+  text-transform: uppercase;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }
 
 @media (max-width: 720px) {

@@ -62,7 +62,7 @@ export default function Compare() {
                     "failure_rate": 0
                 }
             }
-        ], winner: null
+        ], winner: null, timeline: []
     });
 
     //     {
@@ -124,7 +124,8 @@ export default function Compare() {
             console.log(res.data);
             setCompareData({
                 users: res.data.users,
-                winner: res.data.winner
+                winner: res.data.winner,
+                timeline: res.data.timeline || []
             });
         }).catch(err => {
             console.log("Error", err)
@@ -139,6 +140,10 @@ export default function Compare() {
         const completionRate = dailyTotal > 0 ? Math.round((s.daily_completed / dailyTotal) * 100) : 0;
         const weeklyCompletionRate = weeklyTotal > 0 ? Math.round((s.weekly_completed / weeklyTotal) * 100) : 0;
         const penaltyTotal = s.penalty_assigned;
+        const totalCompleted = s.daily_completed + s.weekly_completed + s.penalty_completed;
+        const totalAssigned = dailyTotal + weeklyTotal;
+        const penaltyRatio = totalAssigned > 0 ? Math.round((penaltyTotal / totalAssigned) * 100) : 0;
+        const avgXp = totalCompleted > 0 ? Math.round(s.xp_gained / totalCompleted) : 0;
         const disciplineScore = Math.round(
             (s.xp_gained - s.xp_lost) + (completionRate * 2) - (s.daily_failed * 3)
         );
@@ -158,6 +163,8 @@ export default function Compare() {
             completion_rate: completionRate,
             weekly_completion_rate: weeklyCompletionRate,
             penalty_assigned: penaltyTotal,
+            penalty_ratio: penaltyRatio,
+            avg_xp: avgXp,
             discipline_score: disciplineScore
         };
     });
@@ -175,6 +182,60 @@ export default function Compare() {
         Lost: r.xp_lost,
         Net: r.net_xp
     }));
+
+    const timelineRows = compareData.timeline || [];
+    const dateKeys = [];
+    if (range.from && range.to) {
+        const d1 = new Date(range.from);
+        const d2 = new Date(range.to);
+        for (let d = new Date(d1); d <= d2; d.setDate(d.getDate() + 1)) {
+            dateKeys.push(d.toISOString().slice(0, 10));
+        }
+    }
+    const timelineMap = {};
+    timelineRows.forEach(r => {
+        const date = r.date;
+        if (!timelineMap[date]) timelineMap[date] = {};
+        timelineMap[date][r.username] = r;
+    });
+    const timelineChart = dateKeys.map(date => {
+        const row = { date };
+        statRows.forEach(u => {
+            const rec = timelineMap[date]?.[u.name];
+            row[`${u.name}_net`] = rec ? rec.net_xp : 0;
+            row[`${u.name}_fail`] = rec ? rec.daily_failed + rec.weekly_failed : 0;
+        });
+        return row;
+    });
+
+    const calcStreaks = (username) => {
+        let current = 0;
+        let best = 0;
+        let running = 0;
+        for (const date of dateKeys) {
+            const rec = timelineMap[date]?.[username];
+            const completed = rec ? (rec.daily_completed + rec.weekly_completed) : 0;
+            const failed = rec ? (rec.daily_failed + rec.weekly_failed) : 0;
+            const success = completed > 0 && failed === 0;
+            if (success) {
+                running += 1;
+                best = Math.max(best, running);
+            } else {
+                running = 0;
+            }
+        }
+        // current streak from end
+        current = 0;
+        for (let i = dateKeys.length - 1; i >= 0; i -= 1) {
+            const rec = timelineMap[dateKeys[i]]?.[username];
+            const completed = rec ? (rec.daily_completed + rec.weekly_completed) : 0;
+            const failed = rec ? (rec.daily_failed + rec.weekly_failed) : 0;
+            const success = completed > 0 && failed === 0;
+            if (success) current += 1;
+            else break;
+        }
+        return { current, best };
+    };
 
     return (
         <div className="page compare-page">
@@ -228,8 +289,24 @@ export default function Compare() {
                                 <span>{row.failure_rate}%</span>
                             </div>
                             <div className="summary-row">
+                                <span>Penalty Ratio</span>
+                                <span>{row.penalty_ratio}%</span>
+                            </div>
+                            <div className="summary-row">
+                                <span>Avg XP / Quest</span>
+                                <span>{row.avg_xp}</span>
+                            </div>
+                            <div className="summary-row">
                                 <span>Net XP</span>
                                 <span>{row.net_xp}</span>
+                            </div>
+                            <div className="summary-row">
+                                <span>Current Streak</span>
+                                <span>{calcStreaks(row.name).current}d</span>
+                            </div>
+                            <div className="summary-row">
+                                <span>Best Streak</span>
+                                <span>{calcStreaks(row.name).best}d</span>
                             </div>
                             <div className="summary-row">
                                 <span>Discipline Score</span>
@@ -271,6 +348,32 @@ export default function Compare() {
                             <Line type="monotone" dataKey="Gained" stroke="#4de0ff" strokeWidth={2} dot={false} />
                             <Line type="monotone" dataKey="Lost" stroke="#ff4b6e" strokeWidth={2} dot={false} />
                             <Line type="monotone" dataKey="Net" stroke="#6bffb3" strokeWidth={2} dot={false} />
+                        </LineChart>
+                    </ResponsiveContainer>
+                </div>
+            </Card>
+
+            <Card className="compare-charts">
+                <h3 className="compare-section-title">DAILY NET XP TIMELINE</h3>
+                <div className="chart-block">
+                    <ResponsiveContainer width="100%" height={260}>
+                        <LineChart data={timelineChart}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="rgba(110,170,200,0.2)" />
+                            <XAxis dataKey="date" />
+                            <YAxis />
+                            <Tooltip />
+                            <Legend />
+                            {statRows.map((u, idx) => (
+                                <Line
+                                    key={u.name}
+                                    type="monotone"
+                                    dataKey={`${u.name}_net`}
+                                    name={`${u.name.toUpperCase()} Net XP`}
+                                    stroke={idx % 2 === 0 ? "#6aa9ff" : "#6f5bff"}
+                                    strokeWidth={2}
+                                    dot={false}
+                                />
+                            ))}
                         </LineChart>
                     </ResponsiveContainer>
                 </div>

@@ -31,7 +31,9 @@
   background:
     linear-gradient(90deg, rgba(77, 224, 255, 0.15), transparent 25%, transparent 75%, rgba(255, 75, 110, 0.12)),
     linear-gradient(180deg, rgba(77, 224, 255, 0.12), transparent 30%, transparent 70%, rgba(255, 75, 110, 0.1)),
-    radial-gradient(120% 100% at 50% 50%, transparent 60%, rgba(0, 0, 0, 0.6));
+    radial-gradient(120% 100% at 50% 50%, transparent 60%, rgba(0, 0, 0, 0.6)),
+    linear-gradient(90deg, transparent 42%, rgba(230, 245, 255, 0.4) 50%, transparent 58%) 50% 10px / 120px 1px no-repeat,
+    linear-gradient(90deg, transparent 42%, rgba(230, 245, 255, 0.4) 50%, transparent 58%) 50% calc(100% - 10px) / 120px 1px no-repeat;
   opacity: 0.35;
 }
 

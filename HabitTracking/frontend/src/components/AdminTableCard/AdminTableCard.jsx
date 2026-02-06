@@ -35,7 +35,7 @@ export default function AdminTableCard({
                             <tr key={idx}>
                                 {columns.map((col) => {
                                     if (col == "id") {
-                                        return <td key={col}>{row[col].substring(0, 5)}</td>
+                                        return <td key={col}>{row[col]}</td>
                                     }
                                     else return <td key={col}>{row[col]}</td>
                                 })}

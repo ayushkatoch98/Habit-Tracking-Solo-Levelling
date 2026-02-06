@@ -1,6 +1,6 @@
 import "./bottomNav.css";
 
-export default function BottomNav({ items, onClick }) {
+export default function BottomNav({ items, onClick, active }) {
     return (
         <nav className="bottom-nav">
             {
@@ -9,7 +9,8 @@ export default function BottomNav({ items, onClick }) {
 
                         <NavItem key={item.key}
                             label={item.label}
-                            isActive={item.isActive}
+                            isActive={active === item.key}
+                            Icon={item.icon}
                             onClick={() => onClick(item.key)}
                         />
                     )
@@ -19,13 +20,15 @@ export default function BottomNav({ items, onClick }) {
     );
 }
 
-function NavItem({ label, isActive, onClick }) {
+function NavItem({ label, isActive, onClick, Icon }) {
     return (
         <button
             className={`nav-item ${isActive ? "active" : ""}`}
             onClick={onClick}
+            aria-label={label}
+            title={label}
         >
-            <span className="nav-label">{label}</span>
+            {Icon && <Icon size={18} className="nav-icon" />}
         </button>
     );
 }

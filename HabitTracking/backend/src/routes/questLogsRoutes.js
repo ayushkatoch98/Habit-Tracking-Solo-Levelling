@@ -14,7 +14,8 @@ router.get("/dashboard", async (req, res, next) => {
     const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().split("T")[0];
     const { startDate = yesterday, endDate = today } = req.query;
 
-    let query = `SELECT ql.id as id, q.title as title, ql.status as status , q.quest_type as quest_type, q.description as description, ql.complete_by as complete_by, ql.assigned_at as assigned_at
+    let query = `SELECT ql.id as id, q.title as title, ql.status as status , q.quest_type as quest_type, q.description as description,
+    q.quest_xp as quest_xp, q.failed_xp as failed_xp, ql.complete_by as complete_by, ql.assigned_at as assigned_at
     FROM quest_logs ql JOIN quests q ON ql.quest_id = q.id WHERE ql.user_id = $1`;
     const params = [userId];
 
@@ -120,6 +121,58 @@ router.get("/compare", async (req, res, next) => {
             };
         });
 
+        const timelineResult = await pool.query(
+            `
+            WITH base AS (
+                SELECT
+                    u.id AS user_id,
+                    u.username,
+                    q.quest_type,
+                    ql.status,
+                    q.quest_xp,
+                    q.failed_xp,
+                    DATE(ql.assigned_at) AS assigned_date
+                FROM quest_logs ql
+                JOIN quests q ON ql.quest_id = q.id
+                JOIN users u ON ql.user_id = u.id
+                ${whereCondition}
+            )
+            SELECT
+                assigned_date,
+                user_id,
+                username,
+
+                COUNT(*) FILTER (WHERE quest_type = 'DAILY_QUEST' AND status = 'COMPLETED') AS daily_completed,
+                COUNT(*) FILTER (WHERE quest_type = 'DAILY_QUEST' AND status = 'FAILED') AS daily_failed,
+
+                COUNT(*) FILTER (WHERE quest_type = 'WEEKLY_QUEST' AND status = 'COMPLETED') AS weekly_completed,
+                COUNT(*) FILTER (WHERE quest_type = 'WEEKLY_QUEST' AND status = 'FAILED') AS weekly_failed,
+
+                COUNT(*) FILTER (WHERE quest_type = 'PENALTY') AS penalty_assigned,
+
+                COALESCE(SUM(quest_xp) FILTER (WHERE status = 'COMPLETED'), 0) AS xp_gained,
+                COALESCE(SUM(failed_xp) FILTER (WHERE status = 'FAILED'), 0) AS xp_lost
+
+            FROM base
+            GROUP BY assigned_date, user_id, username
+            ORDER BY assigned_date, username;
+            `,
+            dynamicParams
+        );
+
+        const timeline = timelineResult.rows.map(r => ({
+            date: r.assigned_date,
+            username: r.username,
+            daily_completed: Number(r.daily_completed),
+            daily_failed: Number(r.daily_failed),
+            weekly_completed: Number(r.weekly_completed),
+            weekly_failed: Number(r.weekly_failed),
+            penalty_assigned: Number(r.penalty_assigned),
+            xp_gained: Number(r.xp_gained),
+            xp_lost: Number(r.xp_lost),
+            net_xp: Number(r.xp_gained) - Number(r.xp_lost)
+        }));
+
         // Decide winner (simple + brutal)
         let winner = null;
         if (users.length === 2) {
@@ -132,6 +185,7 @@ router.get("/compare", async (req, res, next) => {
         res.status(200).json({
             range: { startDate, endDate },
             users,
+            timeline,
             winner
         });
 
@@ -153,6 +207,8 @@ router.get("/others", async (req, res, next) => {
                     ql.status AS status,
                     q.quest_type AS quest_type,
                     q.description AS description,
+                    q.quest_xp AS quest_xp,
+                    q.failed_xp AS failed_xp,
                     ql.complete_by AS complete_by,
                     ql.assigned_at AS assigned_at
                 FROM quest_logs ql

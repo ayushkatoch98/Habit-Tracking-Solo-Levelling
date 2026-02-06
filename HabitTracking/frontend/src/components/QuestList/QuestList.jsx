@@ -7,7 +7,7 @@ import "./questList.css";
 import "./questTimer.css"
 
 
-export default function QuestList({ title, items, onSelect, className = '', style = {} }) {
+export default function QuestList({ title, items, onSelect, className = '', style = {}, showActions = false, onComplete, onFail }) {
     return (
         <div>
             <Section title={title} className={className} style={style} >
@@ -30,37 +30,38 @@ function QuestItem({ quest, completed, onClick }) {
             className={`quest-item ${completed ? "completed" : ""}`}
             onClick={onClick}
         >
-            <div className="quest-text">
-                <span className="quest-title">{quest.title}</span>
-                <span className="quest-subtitle">{quest.quest_type}</span>
+            <div className="quest-main">
+                <div className="quest-text">
+                    <span className="quest-title">{quest.title}</span>
+                <div className="quest-meta">
+                    {typeof quest.quest_xp === "number" && <span className="quest-chip xp">+{quest.quest_xp} XP</span>}
+                    {typeof quest.failed_xp === "number" && <span className="quest-chip fail">-{Math.abs(quest.failed_xp)} XP</span>}
+                </div>
 
-                {quest.description && (
-                    <span className="quest-description">
-                        {quest.description}
-                    </span>
-                )}
+                    {quest.description && (
+                        <span className="quest-description">
+                            {quest.description}
+                        </span>
+                    )}
 
-                {/* ASSIGNED DATE */}
-                {quest.assigned_at && (
-                    <span className="quest-assigned">
-                        Assigned: {formatDate(quest.assigned_at)}
-                    </span>
-                )}
-            </div>
+                    {/* ASSIGNED DATE */}
+                    {quest.assigned_at && (
+                        <span className="quest-assigned">
+                            Assigned: {formatDate(quest.assigned_at)}
+                        </span>
+                    )}
+                </div>
 
-            <div className="quest-right">
-                {
-                
-                    <QuestTimer completeBy={quest.complete_by} isFailed={quest.status == QUEST_STATUS.FAILED} isCompleted={quest.status == QUEST_STATUS.COMPLETED} />
-                
-                }
+                <div className="quest-right">
+                    <QuestTimer completeBy={quest.complete_by} assignedAt={quest.assigned_at} isFailed={quest.status == QUEST_STATUS.FAILED} isCompleted={quest.status == QUEST_STATUS.COMPLETED} />
+                </div>
             </div>
         </div>
     );
 }
 
 
-function QuestTimer({ completeBy, isFailed, isCompleted }) {
+function QuestTimer({ completeBy, assignedAt, isFailed, isCompleted }) {
     const [timeLeft, setTimeLeft] = useState(
         Math.max(0, new Date(completeBy) - Date.now())
     );
@@ -78,12 +79,26 @@ function QuestTimer({ completeBy, isFailed, isCompleted }) {
 
     if (!completeBy) return null;
 
+    const totalMs = assignedAt ? Math.max(1, new Date(completeBy) - new Date(assignedAt)) : Math.max(1, new Date(completeBy) - Date.now());
+    const progress = Math.max(0, Math.min(1, timeLeft / totalMs));
+    const ringStyle = {
+        background: `conic-gradient(rgba(106, 169, 255, 0.75) ${progress * 360}deg, rgba(140, 180, 255, 0.18) 0deg)`
+    };
+
     // ✅ COMPLETED STATE (TOP PRIORITY)
     if (isCompleted) {
-        return <div className="quest-timer completed">COMPLETED</div>;
+        return (
+            <div className="quest-timer completed">
+                <span>COMPLETED</span>
+            </div>
+        );
     }
     if (isFailed) {
-        return <div className="quest-timer failed">FAILED</div>;
+        return (
+            <div className="quest-timer failed">
+                <span>FAILED</span>
+            </div>
+        );
     }
 
     const danger = timeLeft <= 15 * 60 * 1000;
@@ -91,10 +106,10 @@ function QuestTimer({ completeBy, isFailed, isCompleted }) {
 
     return (
         <div
-            className={`quest-timer ${danger ? "danger" : ""} ${expired ? "expired" : ""
-                }`}
+            className={`quest-timer ${danger ? "danger" : ""} ${expired ? "expired" : ""}`}
+            style={ringStyle}
         >
-            {expired ? "TIME UP" : formatTime(timeLeft)}
+            <span>{expired ? "TIME UP" : formatTime(timeLeft)}</span>
         </div>
     );
 }

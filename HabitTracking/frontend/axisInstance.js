@@ -1,4 +1,5 @@
-import axios from "axios"
+import axios from "axios";
+import { startLoading, stopLoading } from "./src/utils/loadingStore";
 
 console.log(import.meta.env)
 const instance = axios.create({
@@ -8,20 +9,28 @@ const instance = axios.create({
 
 instance.interceptors.request.use(
   (config) => {
+    startLoading();
     const token = localStorage.getItem("jwt");
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
   },
-  (error) => Promise.reject(error)
+  (error) => {
+    stopLoading();
+    return Promise.reject(error);
+  }
 );
 
 instance.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    stopLoading();
+    return response;
+  },
   (error) => {
+    stopLoading();
     if (error.response?.status === 401) {
-      // 🔥 AUTH IS INVALID → RESET EVERYTHING
+      // ?? AUTH IS INVALID ? RESET EVERYTHING
       localStorage.removeItem("jwt");
       localStorage.removeItem("user");
 

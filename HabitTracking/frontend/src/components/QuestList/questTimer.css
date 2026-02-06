@@ -1,55 +1,103 @@
 .quest-timer {
-  font-size: 11px;
-  letter-spacing: 1.5px;
-
-  padding: 4px 8px;
-  border-radius: 8px;
-
-  background: rgba(2, 6, 12, 0.8);
-  border: 1px solid rgba(77, 224, 255, 0.2);
-
+  font-size: 10px;
+  letter-spacing: 1px;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 8px;
+  background:
+    radial-gradient(circle at 50% 50%, rgba(10, 16, 30, 0.96) 45%, rgba(2, 6, 12, 0.9) 70%),
+    conic-gradient(from 0deg, rgba(106, 169, 255, 0.18) 0deg 30deg, transparent 30deg 60deg, rgba(106, 169, 255, 0.18) 60deg 90deg, transparent 90deg 120deg, rgba(106, 169, 255, 0.18) 120deg 150deg, transparent 150deg 180deg, rgba(106, 169, 255, 0.18) 180deg 210deg, transparent 210deg 240deg, rgba(106, 169, 255, 0.18) 240deg 270deg, transparent 270deg 300deg, rgba(106, 169, 255, 0.18) 300deg 330deg, transparent 330deg 360deg);
+  border: 1px solid rgba(106, 169, 255, 0.45);
   color: var(--muted);
-  white-space: nowrap;
-
+  white-space: normal;
   transition: all 0.2s ease;
+  background-clip: padding-box;
+  position: relative;
+  line-height: 1.2;
+  box-shadow:
+    0 0 16px rgba(106, 169, 255, 0.28),
+    inset 0 0 10px rgba(10, 20, 40, 0.6);
+}
+
+.quest-timer::before {
+  content: "";
+  position: absolute;
+  inset: 8px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 50% 30%, rgba(60, 120, 220, 0.22), transparent 55%),
+    rgba(6, 10, 20, 0.96);
+  box-shadow:
+    inset 0 0 12px rgba(6, 12, 24, 0.9),
+    inset 0 0 6px rgba(106, 169, 255, 0.25);
+  z-index: 0;
+}
+
+.quest-timer > span,
+.quest-timer > small {
+  position: relative;
+  z-index: 1;
+  display: block;
+}
+
+.quest-timer > span {
+  max-width: 44px;
+  font-weight: 600;
+  letter-spacing: 0.8px;
+  line-height: 1.1;
+  text-shadow: 0 0 6px rgba(140, 180, 255, 0.4);
+}
+
+.quest-timer.completed > span,
+.quest-timer.failed > span {
+  font-size: 9px;
 }
 
 /* DANGER MODE */
 .quest-timer.danger {
-  color: var(--danger);
-  border-color: rgba(255, 75, 110, 0.7);
-  box-shadow: 0 0 10px rgba(255, 75, 110, 0.5);
+  color: #c8d4ff;
+  border-color: rgba(140, 180, 255, 0.55);
+  box-shadow: 0 0 16px rgba(140, 180, 255, 0.45);
   animation: pulseDanger 1s infinite;
 }
 
 /* EXPIRED */
 .quest-timer.expired {
-  color: var(--danger);
-  border-color: rgba(255, 75, 110, 0.8);
-  box-shadow: 0 0 16px rgba(255, 75, 110, 0.8);
+  color: #d9e2ff;
+  border-color: rgba(160, 190, 255, 0.7);
+  box-shadow: 0 0 20px rgba(160, 190, 255, 0.5);
   animation: none;
 }
 
 .quest-timer.completed {
   color: #6bdcff;
   border-color: rgba(107, 220, 255, 0.6);
-  background: rgba(10, 26, 36, 0.65);
+  background:
+    radial-gradient(circle at 50% 50%, rgba(12, 28, 40, 0.95) 40%, rgba(6, 12, 20, 0.95) 70%),
+    conic-gradient(from 0deg, rgba(80, 220, 255, 0.2) 0deg 40deg, transparent 40deg 80deg, rgba(80, 220, 255, 0.2) 80deg 120deg, transparent 120deg 160deg, rgba(80, 220, 255, 0.2) 160deg 200deg, transparent 200deg 240deg, rgba(80, 220, 255, 0.2) 240deg 280deg, transparent 280deg 320deg, rgba(80, 220, 255, 0.2) 320deg 360deg);
 
   box-shadow:
-    0 0 10px rgba(107, 220, 255, 0.45),
-    inset 0 0 6px rgba(107, 220, 255, 0.25);
+    0 0 12px rgba(107, 220, 255, 0.45),
+    inset 0 0 8px rgba(107, 220, 255, 0.25);
 
   animation: none;
 }
 
 .quest-timer.failed {
-  color: var(--danger);
-  border-color: rgba(255, 75, 110, 0.8);
-  background: rgba(40, 12, 18, 0.65);
+  color: #ff8aa0;
+  border-color: rgba(255, 92, 122, 0.6);
+  background:
+    radial-gradient(circle at 50% 50%, rgba(26, 8, 16, 0.95) 40%, rgba(10, 4, 8, 0.95) 70%),
+    conic-gradient(from 0deg, rgba(255, 92, 122, 0.22) 0deg 40deg, transparent 40deg 80deg, rgba(255, 92, 122, 0.22) 80deg 120deg, transparent 120deg 160deg, rgba(255, 92, 122, 0.22) 160deg 200deg, transparent 200deg 240deg, rgba(255, 92, 122, 0.22) 240deg 280deg, transparent 280deg 320deg, rgba(255, 92, 122, 0.22) 320deg 360deg);
 
   box-shadow:
-    0 0 10px rgba(255, 75, 110, 0.6),
-    inset 0 0 6px rgba(255, 75, 110, 0.3);
+    0 0 12px rgba(255, 92, 122, 0.4),
+    inset 0 0 8px rgba(255, 92, 122, 0.2);
 
   animation: none;
 }
@@ -58,12 +106,12 @@
 /* PULSE */
 @keyframes pulseDanger {
   0% {
-    box-shadow: 0 0 8px rgba(255, 75, 110, 0.4);
+    box-shadow: 0 0 8px rgba(140, 180, 255, 0.3);
   }
   50% {
-    box-shadow: 0 0 14px rgba(255, 75, 110, 0.9);
+    box-shadow: 0 0 14px rgba(140, 180, 255, 0.6);
   }
   100% {
-    box-shadow: 0 0 8px rgba(255, 75, 110, 0.4);
+    box-shadow: 0 0 8px rgba(140, 180, 255, 0.3);
   }
 }

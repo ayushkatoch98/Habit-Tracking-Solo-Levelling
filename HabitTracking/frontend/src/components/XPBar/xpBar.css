@@ -60,9 +60,9 @@
 .xp-fill {
     height: 100%;
     background: linear-gradient(90deg,
-            #4de0ff,
-            #2b7bff);
-    box-shadow: 0 0 12px rgba(77, 224, 255, 0.7);
+            #6aa9ff,
+            #6f5bff);
+    box-shadow: 0 0 12px rgba(140, 160, 255, 0.7);
     transition: width 0.4s ease;
 }
 

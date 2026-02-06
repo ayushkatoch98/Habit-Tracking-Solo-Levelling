@@ -17,6 +17,21 @@ export default function Dashboard() {
         quest: {}
     });
 
+    const [visibleSections, setVisibleSections] = useState({
+        daily: true,
+        weekly: true,
+        penalties: true,
+        completed: true,
+        failed: true
+    });
+    const [collapsed, setCollapsed] = useState({
+        daily: false,
+        weekly: false,
+        penalties: false,
+        completed: false,
+        failed: false
+    });
+
 
     const { completedQuests, pendingQuests, punishmentQuests, weeklyQuests, failedQuests } = useMemo(() => {
         const result = {
@@ -73,6 +88,8 @@ export default function Dashboard() {
             return;
         }
 
+        setShowConfirm({ isOpen: false, quest: {} });
+
         // 1️⃣ Optimistic UI update
         setQuests(prev =>
             prev.map(item =>
@@ -85,7 +102,6 @@ export default function Dashboard() {
         // 2️⃣ API call
         try {
             await instance.put(`quest-logs/${quest.id}`, { status: newStatus });
-            setShowConfirm({ isOpen: false, quest: {} })
         } catch (err) {
             console.error("Error", err);
             alert(err.response?.data?.message || "Something went wrong");
@@ -99,7 +115,6 @@ export default function Dashboard() {
                 )
             );
 
-            setShowConfirm({ isOpen: false, quest: {} })
         }
     };
 
@@ -152,56 +167,109 @@ export default function Dashboard() {
                 </div>
 
                 <div className="dashboard-right">
-                    <Card className="panel-card">
-                        <QuestList
-                            title="Daily Directives"
-                            items={pendingQuests}
-                            onSelect={(quest) => {
-                                if (quest.status === QUEST_STATUS.PENDING) {
-                                    setShowConfirm({ isOpen: true, quest: { ...quest } })
-                                }
-                            }}
-                        />
-                    </Card>
 
-                    <Card className="panel-card">
-                        <QuestList
-                            title="Weekly Trials"
-                            items={weeklyQuests}
-                            onSelect={(quest) => {
-                                if (quest.status === QUEST_STATUS.PENDING && new Date(quest.complete_by) > Date.now()) {
-                                    setShowConfirm({ isOpen: true, quest: { ...quest } })
-                                }
-                            }}
-                        />
-                    </Card>
-
-                    <Card className="panel-card">
-                        <QuestList
-                            title="Penalties"
-                            items={punishmentQuests}
-                            onSelect={(quest) => {
-                                if (quest.status === QUEST_STATUS.PENDING && new Date(quest.complete_by) > Date.now()) setShowConfirm({ isOpen: true, quest: {...quest} })
-                            }}
-                        />
-                    </Card>
-
-                    <div className="split-row">
+                    {visibleSections.daily && (
                         <Card className="panel-card">
-                            <QuestList
-                                title="Completed"
-                                items={completedQuests}
-                                onSelect={() => {}}
-                            />
+                            <div className="section-header">
+                                <div className="section-title">Daily Directives</div>
+                                <button className="section-toggle" onClick={() => setCollapsed(c => ({...c, daily: !c.daily}))}>
+                                    {collapsed.daily ? "Expand" : "Collapse"}
+                                </button>
+                            </div>
+                            {!collapsed.daily && (
+                                <QuestList
+                                    title=""
+                                    items={pendingQuests}
+                                    onSelect={(quest) => {
+                                        if (quest.status === QUEST_STATUS.PENDING) {
+                                            setShowConfirm({ isOpen: true, quest: { ...quest } })
+                                        }
+                                    }}
+                                />
+                            )}
                         </Card>
+                    )}
+
+                    {visibleSections.weekly && (
                         <Card className="panel-card">
-                            <QuestList
-                                title="Failed"
-                                items={failedQuests}
-                                onSelect={() => {}}
-                            />
+                            <div className="section-header">
+                                <div className="section-title">Weekly Trials</div>
+                                <button className="section-toggle" onClick={() => setCollapsed(c => ({...c, weekly: !c.weekly}))}>
+                                    {collapsed.weekly ? "Expand" : "Collapse"}
+                                </button>
+                            </div>
+                            {!collapsed.weekly && (
+                                <QuestList
+                                    title=""
+                                    items={weeklyQuests}
+                                    onSelect={(quest) => {
+                                        if (quest.status === QUEST_STATUS.PENDING && new Date(quest.complete_by) > Date.now()) {
+                                            setShowConfirm({ isOpen: true, quest: { ...quest } })
+                                        }
+                                    }}
+                                />
+                            )}
                         </Card>
-                    </div>
+                    )}
+
+                    {visibleSections.penalties && (
+                        <Card className="panel-card">
+                            <div className="section-header">
+                                <div className="section-title">Penalties</div>
+                                <button className="section-toggle" onClick={() => setCollapsed(c => ({...c, penalties: !c.penalties}))}>
+                                    {collapsed.penalties ? "Expand" : "Collapse"}
+                                </button>
+                            </div>
+                            {!collapsed.penalties && (
+                                <QuestList
+                                    title=""
+                                    items={punishmentQuests}
+                                    onSelect={(quest) => {
+                                        if (quest.status === QUEST_STATUS.PENDING && new Date(quest.complete_by) > Date.now()) setShowConfirm({ isOpen: true, quest: {...quest} })
+                                    }}
+                                />
+                            )}
+                        </Card>
+                    )}
+
+                    {(visibleSections.completed || visibleSections.failed) && (
+                        <div className="split-row">
+                            {visibleSections.completed && (
+                                <Card className="panel-card">
+                                    <div className="section-header">
+                                        <div className="section-title">Completed</div>
+                                        <button className="section-toggle" onClick={() => setCollapsed(c => ({...c, completed: !c.completed}))}>
+                                            {collapsed.completed ? "Expand" : "Collapse"}
+                                        </button>
+                                    </div>
+                                    {!collapsed.completed && (
+                                        <QuestList
+                                            title=""
+                                            items={completedQuests}
+                                            onSelect={() => {}}
+                                        />
+                                    )}
+                                </Card>
+                            )}
+                            {visibleSections.failed && (
+                                <Card className="panel-card">
+                                    <div className="section-header">
+                                        <div className="section-title">Failed</div>
+                                        <button className="section-toggle" onClick={() => setCollapsed(c => ({...c, failed: !c.failed}))}>
+                                            {collapsed.failed ? "Expand" : "Collapse"}
+                                        </button>
+                                    </div>
+                                    {!collapsed.failed && (
+                                        <QuestList
+                                            title=""
+                                            items={failedQuests}
+                                            onSelect={() => {}}
+                                        />
+                                    )}
+                                </Card>
+                            )}
+                        </div>
+                    )}
                 </div>
             </div>
 
@@ -210,7 +278,7 @@ export default function Dashboard() {
                 title="UPDATE QUEST STATUS"
                 message="Choose to complete or fail this quest. This action cannot be undone."
                 confirmText="Mark Completed"
-                dangerous={false}
+                danger={false}
                 secondaryText="Mark Failed"
                 secondaryDanger={true}
                 onSecondary={() => onQuestClick(showConfirm.quest, QUEST_STATUS.FAILED)}
