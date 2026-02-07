@@ -2,12 +2,12 @@ import { QUEST_STATUS, QUEST_TYPE } from "../../../../backend/src/constant";
 import Card from "../Card/Card";
 import { Section } from "../QuestListSection/QuestListSection";
 import SystemTimer from "../SystemTimer/SystemTimer";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import "./questList.css";
 import "./questTimer.css"
 
 
-export default function QuestList({ title, items, onSelect, className = '', style = {}, showActions = false, onComplete, onFail }) {
+export default function QuestList({ title, items, onSelect, className = '', style = {}, showActions = false, onComplete, onFail, onExpire }) {
     return (
         <div>
             <Section title={title} className={className} style={style} >
@@ -16,6 +16,7 @@ export default function QuestList({ title, items, onSelect, className = '', styl
                         key={quest.id}
                         quest={quest}
                         onClick={() => onSelect(quest)}
+                        onExpire={onExpire}
                     />
                 ))}
             </Section>
@@ -24,7 +25,7 @@ export default function QuestList({ title, items, onSelect, className = '', styl
 }
 
 
-function QuestItem({ quest, completed, onClick }) {
+function QuestItem({ quest, completed, onClick, onExpire }) {
     return (
         <div
             className={`quest-item ${completed ? "completed" : ""}`}
@@ -53,7 +54,13 @@ function QuestItem({ quest, completed, onClick }) {
                 </div>
 
                 <div className="quest-right">
-                    <QuestTimer completeBy={quest.complete_by} assignedAt={quest.assigned_at} isFailed={quest.status == QUEST_STATUS.FAILED} isCompleted={quest.status == QUEST_STATUS.COMPLETED} />
+                    <QuestTimer
+                        completeBy={quest.complete_by}
+                        assignedAt={quest.assigned_at}
+                        isFailed={quest.status == QUEST_STATUS.FAILED}
+                        isCompleted={quest.status == QUEST_STATUS.COMPLETED}
+                        onExpire={() => onExpire?.(quest)}
+                    />
                 </div>
             </div>
         </div>
@@ -61,21 +68,34 @@ function QuestItem({ quest, completed, onClick }) {
 }
 
 
-function QuestTimer({ completeBy, assignedAt, isFailed, isCompleted }) {
+function QuestTimer({ completeBy, assignedAt, isFailed, isCompleted, onExpire }) {
     const [timeLeft, setTimeLeft] = useState(
         Math.max(0, new Date(completeBy) - Date.now())
     );
+    const expireTriggered = useRef(false);
 
     useEffect(() => {
         // ⛔ Stop timer if completed
-        if (isCompleted) return;
+        if (isCompleted || isFailed) return;
 
         const interval = setInterval(() => {
             setTimeLeft(Math.max(0, new Date(completeBy) - Date.now()));
         }, 1000);
 
         return () => clearInterval(interval);
-    }, [completeBy, isCompleted]);
+    }, [completeBy, isCompleted, isFailed]);
+
+    useEffect(() => {
+        if (!completeBy) return;
+        if (isCompleted || isFailed) return;
+        if (timeLeft <= 0 && !expireTriggered.current) {
+            expireTriggered.current = true;
+            onExpire?.();
+        }
+        if (timeLeft > 0) {
+            expireTriggered.current = false;
+        }
+    }, [timeLeft, isCompleted, isFailed, completeBy, onExpire]);
 
     if (!completeBy) return null;
 

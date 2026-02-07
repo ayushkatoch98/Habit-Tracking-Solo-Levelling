@@ -116,7 +116,7 @@ const login = async (req, res, next) => {
 const getProfile = async (req, res, next) => {
     try {
         const result = await pool.query(
-            "SELECT id, username, email, level, xp FROM users WHERE id = $1",
+            "SELECT id, username, email, level, xp, timezone, reset_hour_utc, reset_minute_utc FROM users WHERE id = $1",
             [req.userId]
         );
 
@@ -158,7 +158,7 @@ const getXpRequired = async (req, res, next) => {
 const getAllUsers = async (req, res, next) => {
     try {
         const result = await pool.query(
-            "SELECT id, username, email, level, xp FROM users"
+            "SELECT id, username, email, level, xp, timezone, reset_hour_utc, reset_minute_utc FROM users"
         );
         res.json(result.rows);
     } catch (err) {

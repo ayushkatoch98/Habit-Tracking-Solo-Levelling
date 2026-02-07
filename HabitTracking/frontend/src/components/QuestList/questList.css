@@ -155,6 +155,23 @@
   -webkit-box-orient: vertical;
 }
 
+@media (max-width: 640px) {
+  .quest-item {
+    padding: 18px;
+  }
+
+  .quest-main {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 12px;
+    align-items: center;
+  }
+
+  .quest-right {
+    justify-content: flex-end;
+    align-self: center;
+  }
+}
+
 /* RIGHT PROGRESS */
 .quest-checkbox {
   width: 18px;

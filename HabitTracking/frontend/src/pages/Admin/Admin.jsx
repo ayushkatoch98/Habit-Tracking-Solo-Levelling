@@ -116,7 +116,7 @@ export default function Admin() {
         const required = getRequiredColumns(table);
         const suggested = {
             quests: ["user_id", "quest_type", "title", "description", "quest_duration", "quest_xp", "failed_xp"],
-            users: ["username", "email", "password"],
+            users: ["username", "email", "password", "timezone", "reset_hour_utc", "reset_minute_utc"],
             quest_logs: ["user_id", "quest_id", "status", "assigned_at", "complete_by"]
         };
         const columns = required.length > 0 ? required : (suggested[table] || ["column1", "column2"]);

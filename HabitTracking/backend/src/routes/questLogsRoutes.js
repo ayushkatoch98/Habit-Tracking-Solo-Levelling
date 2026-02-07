@@ -287,12 +287,16 @@ router.put("/:id", async (req, res, next) => {
         }
 
         const updateResult = await client.query(
-            "UPDATE quest_logs SET status = $1 WHERE id = $2 and user_id = $3 RETURNING *",
-            [status, questLogId, userId]
+            "UPDATE quest_logs SET status = $1 WHERE id = $2 and user_id = $3 AND status = $4 RETURNING *",
+            [status, questLogId, userId, QUEST_STATUS.PENDING]
         );
+        if (updateResult.rows.length === 0) {
+            await client.query("ROLLBACK");
+            return res.status(409).json({ message: "Quest log was already updated" });
+        }
         updatedQuestLog = updateResult.rows[0];
         const questXp = questLogResult.rows[0].quest_xp;
-        const failedXp = questLogResult.rows[0].failed_xp;
+        const failedXp = Math.abs(Number(questLogResult.rows[0].failed_xp || 0));
         const questType = questLogResult.rows[0].quest_type;
 
         if (status === QUEST_STATUS.COMPLETED) {

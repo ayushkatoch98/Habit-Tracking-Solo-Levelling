@@ -11,6 +11,7 @@ import "./Dashboard.css";
 export default function Dashboard() {
 
     const [quests, setQuests] = useState([])
+    const [profile, setProfile] = useState(null);
 
     const [showConfirm, setShowConfirm] = useState({
         isOpen: false,
@@ -69,16 +70,28 @@ export default function Dashboard() {
     }, [quests]);
 
 
+    const fetchProfile = async () => {
+        try {
+            const res = await instance.get("/auth/me");
+            setProfile(res.data);
+        } catch (err) {
+            console.log("Profile Error", err);
+        }
+    };
+
     useEffect(() => {
-
-        instance.get("/quest-logs/dashboard").then(res => {
-            console.log(res.data);
-            setQuests([...res.data])
-        }).catch(err => {
-            console.log("Error", err)
-            alert(err.response.data.message)
-        })
-
+        Promise.all([
+            instance.get("/quest-logs/dashboard"),
+            instance.get("/auth/me")
+        ])
+            .then(([questRes, profileRes]) => {
+                setQuests([...questRes.data]);
+                setProfile(profileRes.data);
+            })
+            .catch(err => {
+                console.log("Error", err)
+                alert(err.response?.data?.message || "Failed to load dashboard data")
+            })
     }, [])
 
 
@@ -102,6 +115,7 @@ export default function Dashboard() {
         // 2️⃣ API call
         try {
             await instance.put(`quest-logs/${quest.id}`, { status: newStatus });
+            await fetchProfile();
         } catch (err) {
             console.error("Error", err);
             alert(err.response?.data?.message || "Something went wrong");
@@ -118,8 +132,17 @@ export default function Dashboard() {
         }
     };
 
-    const deadline = new Date();
-    deadline.setHours(23, 59, 59, 999);
+    const onQuestExpire = (quest) => {
+        if (!quest) return;
+        if (quest.status !== QUEST_STATUS.PENDING) return;
+        if (quest.complete_by && new Date(quest.complete_by) > Date.now()) return;
+        onQuestClick(quest, QUEST_STATUS.FAILED);
+    };
+
+    const deadline = getNextResetTimestamp(
+        profile?.reset_hour_utc,
+        profile?.reset_minute_utc
+    );
 
 
     return (
@@ -132,7 +155,7 @@ export default function Dashboard() {
                 </div>
                 <div className="page-meta">
                     <div className="meta-label">Reset</div>
-                    <SystemTimer deadline={deadline.getTime()} />
+                    <SystemTimer deadline={deadline} />
                 </div>
             </div>
 
@@ -140,7 +163,11 @@ export default function Dashboard() {
                 <div className="dashboard-left">
                     <Card className="panel-card">
                         <div className="panel-title">LEVEL & XP</div>
-                        <XPBar level={20} currentXP={600} requiredXP={1000} />
+                        <XPBar
+                            level={profile?.level || 1}
+                            currentXP={profile?.xp || 0}
+                            requiredXP={profile?.max_xp || 100}
+                        />
                     </Card>
 
                     <Card className="panel-card">
@@ -167,7 +194,6 @@ export default function Dashboard() {
                 </div>
 
                 <div className="dashboard-right">
-
                     {visibleSections.daily && (
                         <Card className="panel-card">
                             <div className="section-header">
@@ -180,6 +206,7 @@ export default function Dashboard() {
                                 <QuestList
                                     title=""
                                     items={pendingQuests}
+                                    onExpire={onQuestExpire}
                                     onSelect={(quest) => {
                                         if (quest.status === QUEST_STATUS.PENDING) {
                                             setShowConfirm({ isOpen: true, quest: { ...quest } })
@@ -202,6 +229,7 @@ export default function Dashboard() {
                                 <QuestList
                                     title=""
                                     items={weeklyQuests}
+                                    onExpire={onQuestExpire}
                                     onSelect={(quest) => {
                                         if (quest.status === QUEST_STATUS.PENDING && new Date(quest.complete_by) > Date.now()) {
                                             setShowConfirm({ isOpen: true, quest: { ...quest } })
@@ -224,6 +252,7 @@ export default function Dashboard() {
                                 <QuestList
                                     title=""
                                     items={punishmentQuests}
+                                    onExpire={onQuestExpire}
                                     onSelect={(quest) => {
                                         if (quest.status === QUEST_STATUS.PENDING && new Date(quest.complete_by) > Date.now()) setShowConfirm({ isOpen: true, quest: {...quest} })
                                     }}
@@ -276,7 +305,7 @@ export default function Dashboard() {
             <ConfirmPopup
                 open={showConfirm.isOpen}
                 title="UPDATE QUEST STATUS"
-                message="Choose to complete or fail this quest. This action cannot be undone."
+                message=""
                 confirmText="Mark Completed"
                 danger={false}
                 secondaryText="Mark Failed"
@@ -284,8 +313,61 @@ export default function Dashboard() {
                 onSecondary={() => onQuestClick(showConfirm.quest, QUEST_STATUS.FAILED)}
                 onConfirm={() => onQuestClick(showConfirm.quest, QUEST_STATUS.COMPLETED)}
                 onCancel={() => setShowConfirm({ isOpen: false, quest: {} })}
-            />
+            >
+                <div className="confirm-quest">
+                    <div className="confirm-quest-header">
+                        <div className="confirm-quest-title">{showConfirm.quest?.title}</div>
+                        <div className="confirm-quest-type">{showConfirm.quest?.quest_type}</div>
+                    </div>
+                    {showConfirm.quest?.description && (
+                        <div className="confirm-quest-desc">{showConfirm.quest.description}</div>
+                    )}
+                    <div className="confirm-quest-meta">
+                        {typeof showConfirm.quest?.quest_xp === "number" && (
+                            <div className="detail-pill">+{showConfirm.quest.quest_xp} XP</div>
+                        )}
+                        {typeof showConfirm.quest?.failed_xp === "number" && (
+                            <div className="detail-pill fail">-{Math.abs(showConfirm.quest.failed_xp)} XP</div>
+                        )}
+                        {showConfirm.quest?.assigned_at && (
+                            <div className="detail-pill">Assigned: {formatDateTime(showConfirm.quest.assigned_at)}</div>
+                        )}
+                        {showConfirm.quest?.complete_by && (
+                            <div className="detail-pill">Complete By: {formatDateTime(showConfirm.quest.complete_by)}</div>
+                        )}
+                    </div>
+                </div>
+            </ConfirmPopup>
         </div>
     )
 
+}
+
+function formatDateTime(date) {
+    const d = new Date(date);
+    return d.toLocaleString(undefined, {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+    });
+}
+
+function getNextResetTimestamp(resetHourUtc = 18, resetMinuteUtc = 30) {
+    const now = new Date();
+    const next = new Date(Date.UTC(
+        now.getUTCFullYear(),
+        now.getUTCMonth(),
+        now.getUTCDate(),
+        resetHourUtc,
+        resetMinuteUtc,
+        0,
+        0
+    ));
+
+    if (next.getTime() <= now.getTime()) {
+        next.setUTCDate(next.getUTCDate() + 1);
+    }
+    return next.getTime();
 }

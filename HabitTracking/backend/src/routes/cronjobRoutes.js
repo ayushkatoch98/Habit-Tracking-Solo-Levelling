@@ -19,9 +19,11 @@ async function hasPendingQuestType(userId, quest_type, client) {
     return result.rows.length > 0;
 }
 
-function isAfterHourUtc(hourUtc) {
+function isAfterTimeUtc(hourUtc, minuteUtc = 0) {
     const now = new Date();
-    return now.getUTCHours() >= hourUtc;
+    const currentMinutes = now.getUTCHours() * 60 + now.getUTCMinutes();
+    const targetMinutes = hourUtc * 60 + minuteUtc;
+    return currentMinutes >= targetMinutes;
 }
 
 function isMondayUtc() {
@@ -89,47 +91,49 @@ async function assignPenaltyQuestToUser(userId, userEmail, client) {
 }
 
 async function markPendingQuestAsFailed(userId, userEmail, quest_type, client) {
-    // Check for pending daily quests and mark them as FAILED and get fail_xp to subtract later
     console.log(`Marking pending ${quest_type} quests as failed for user`, userEmail);
     const pendingQuestResult = await client.query(
-        `SELECT ql.id, q.failed_xp AS failed_xp
-         FROM quest_logs ql
-         JOIN quests q ON ql.quest_id = q.id
-            WHERE ql.user_id = $1
-                AND q.quest_type = $2
-                AND ql.status = $3
-                AND ql.complete_by < NOW()
-                `,
+        `SELECT ql.id
+           FROM quest_logs ql
+           JOIN quests q ON ql.quest_id = q.id
+           WHERE ql.user_id = $1
+             AND q.quest_type = $2
+             AND ql.status = $3
+             AND ql.complete_by < NOW()`,
         [userId, quest_type, QUEST_STATUS.PENDING]
     );
 
-    if (pendingQuestResult.rows.length > 0) {
-        // Mark the pending daily quest as FAILED
-        // get all failed quest ids
-        const failedQuestIds = pendingQuestResult.rows.map(row => row.id);
-        const totalFailedXp = pendingQuestResult.rows.reduce((sum, row) => sum + row.failed_xp, 0);
-
-        await client.query('BEGIN'); // Start a new transaction
-        try{
-
-            await client.query(
-                `UPDATE quest_logs 
-                 SET status = $1 
-                 WHERE id = ANY($2::uuid[])`,
-                [QUEST_STATUS.FAILED, failedQuestIds]
-            );
-
-        }catch(err){
-            await client.query('ROLLBACK');
-            console.log(`Failed to mark pending quest as failed for user ${userEmail}`, err);
-        }
-        finally {
-            await client.query('COMMIT');
-        }
-
-        return { assignPenalty: true, totalFailedXp };
+    if (pendingQuestResult.rows.length === 0) {
+        return { assignPenalty: false, totalFailedXp: 0 };
     }
-    return { assignPenalty: false, totalFailedXp: 0 };
+
+    const failedQuestIds = pendingQuestResult.rows.map(row => row.id);
+
+    await client.query('BEGIN');
+    try {
+        const updateResult = await client.query(
+            `UPDATE quest_logs ql
+               SET status = $1
+               FROM quests q
+              WHERE ql.id = ANY($2::uuid[])
+                AND ql.status = $3
+                AND ql.quest_id = q.id
+              RETURNING q.failed_xp AS failed_xp`,
+            [QUEST_STATUS.FAILED, failedQuestIds, QUEST_STATUS.PENDING]
+        );
+
+        const totalFailedXp = updateResult.rows.reduce((sum, row) => {
+            const value = Math.abs(Number(row.failed_xp || 0));
+            return sum + (isNaN(value) ? 0 : value);
+        }, 0);
+
+        await client.query('COMMIT');
+        return { assignPenalty: updateResult.rows.length > 0, totalFailedXp };
+    } catch (err) {
+        await client.query('ROLLBACK');
+        console.log(`Failed to mark pending quest as failed for user ${userEmail}`, err);
+        return { assignPenalty: false, totalFailedXp: 0 };
+    }
 }
 
 router.get("/run", async (req, res) => {
@@ -140,11 +144,19 @@ router.get("/run", async (req, res) => {
         try {
 
             // Get all users
-            const usersResult = await client.query("SELECT id, email FROM users");
+            const usersResult = await client.query(
+                "SELECT id, email, COALESCE(reset_hour_utc, 18) AS reset_hour_utc, COALESCE(reset_minute_utc, 30) AS reset_minute_utc FROM users"
+            );
             const users = usersResult.rows;
             for (const user of users) {
                 const userId = user.id;
                 const userEmail = user.email;
+                const resetHourUtc = Number.isInteger(user.reset_hour_utc)
+                    ? user.reset_hour_utc
+                    : 18;
+                const resetMinuteUtc = Number.isInteger(user.reset_minute_utc)
+                    ? user.reset_minute_utc
+                    : 30;
                 // Mark expired pending quests as failed
                 const { assignPenalty, totalFailedXp } = await markPendingQuestAsFailed(userId, userEmail, QUEST_TYPE.DAILY_QUEST, client);
                 const { assignPenalty: assignPenalty2, totalFailedXp: totalFailedXp2 } = await markPendingQuestAsFailed(userId, userEmail, QUEST_TYPE.PENALTY, client);
@@ -159,11 +171,11 @@ router.get("/run", async (req, res) => {
                     await assignPenaltyQuestToUser(userId, userEmail, client);
                 }
                 // Assign all daily quests once per day after 3am
-                if (isAfterHourUtc(3)) {
+                if (isAfterTimeUtc(resetHourUtc, resetMinuteUtc)) {
                     await assignAllQuestsByTypeForToday(userId, userEmail, QUEST_TYPE.DAILY_QUEST, client);
                 }
                 // Assign all weekly quests on Mondays after 3am, only once per week
-                if (isAfterHourUtc(3) && isMondayUtc() && !(await hasAssignedThisWeek(userId, QUEST_TYPE.WEEKLY_QUEST, client))) {
+                if (isAfterTimeUtc(resetHourUtc, resetMinuteUtc) && isMondayUtc() && !(await hasAssignedThisWeek(userId, QUEST_TYPE.WEEKLY_QUEST, client))) {
                     await assignAllQuestsByTypeForToday(userId, userEmail, QUEST_TYPE.WEEKLY_QUEST, client);
                 }
 

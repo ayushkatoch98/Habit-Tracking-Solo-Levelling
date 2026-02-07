@@ -6,6 +6,7 @@ export default function ConfirmPopup({
   open,
   title = "CONFIRM ACTION",
   message,
+  children,
   confirmText = "Confirm",
   onConfirm,
   secondaryText,
@@ -28,7 +29,7 @@ export default function ConfirmPopup({
       onClose={onCancel}
     >
       <div className="confirm-popup-content">
-        <p>{message}</p>
+        {children ? children : <p>{message}</p>}
 
         <div className="confirm-popup-actions">
           {onCancel && (

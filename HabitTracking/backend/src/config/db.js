@@ -37,11 +37,15 @@ const createTables = async () => {
             password VARCHAR(255) NOT NULL,
             level INT DEFAULT 1,
             xp INT DEFAULT 0,
+            timezone VARCHAR(64) DEFAULT 'Asia/Kolkata',
+            reset_hour_utc INT DEFAULT 18,
+            reset_minute_utc INT DEFAULT 30,
             created_at TIMESTAMPTZ DEFAULT NOW()
         );
         CREATE TABLE IF NOT EXISTS quests (
             id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
             quest_type VARCHAR(20) NOT NULL,
+            user_id UUID REFERENCES users(id),
             title VARCHAR(100) NOT NULL,
             description TEXT,
             quest_duration INT NOT NULL,
@@ -65,6 +69,38 @@ const createTables = async () => {
         CREATE UNIQUE INDEX IF NOT EXISTS one_pending_quest_per_user_day
         ON quest_logs (user_id, quest_id, assigned_date)
         WHERE status = 'PENDING';
+
+        CREATE INDEX IF NOT EXISTS idx_quest_logs_user_status_assigned_at
+        ON quest_logs (user_id, status, assigned_at DESC);
+
+        ALTER TABLE users
+            ADD COLUMN IF NOT EXISTS timezone VARCHAR(64) DEFAULT 'UTC';
+
+        ALTER TABLE users
+            ADD COLUMN IF NOT EXISTS reset_hour_utc INT DEFAULT 3;
+
+        ALTER TABLE quests
+            ADD COLUMN IF NOT EXISTS user_id UUID REFERENCES users(id);
+
+        ALTER TABLE users
+            ADD COLUMN IF NOT EXISTS reset_minute_utc INT DEFAULT 30;
+
+        ALTER TABLE users
+            ALTER COLUMN timezone SET DEFAULT 'Asia/Kolkata';
+
+        ALTER TABLE users
+            ALTER COLUMN reset_hour_utc SET DEFAULT 18;
+
+        ALTER TABLE users
+            ALTER COLUMN reset_minute_utc SET DEFAULT 30;
+
+        UPDATE users
+            SET reset_hour_utc = 18,
+                reset_minute_utc = 30,
+                timezone = COALESCE(timezone, 'Asia/Kolkata')
+            WHERE reset_hour_utc IS NULL
+               OR reset_minute_utc IS NULL
+               OR reset_hour_utc = 3;
 
     `);
         console.log("Tables are created or already exist.");
